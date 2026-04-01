@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Warhammer Fantasy Roleplay — Character Creator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0705; --bg2:#130f08; --panel:#1c1409;
+  --parch:#f2e6bc; --parch2:#e0cf9e; --parch3:#c8b07a;
+  --gold:#c8963e; --goldhi:#f0c040; --golddark:#7a5820;
+  --red:#8b1a1a; --redhi:#b82020;
+  --txt:#2c1a0e; --txtlt:#f0e0c0; --txtmd:#d4b87a;
+  --border:#5c4a20; --border2:#8a6a30;
+  --shadow:rgba(0,0,0,0.85);
+  --ff-title:'Cinzel Decorative',serif;
+  --ff-head:'Cinzel',serif;
+  --ff-body:'IM Fell English',serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--txtlt);font-family:var(--ff-body);font-size:16px}
+#particles-canvas{position:fixed;inset:0;pointer-events:none;z-index:0}
+
+/* PROGRESS */
+#progress{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:center;gap:0;padding:10px 20px;background:linear-gradient(to bottom,rgba(10,7,5,0.98),transparent)}
+.step-dot{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;opacity:0.35;transition:opacity 0.3s}
+.step-dot.active{opacity:1}
+.step-dot.done{opacity:0.65}
+.step-circle{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--golddark);background:var(--panel);display:flex;align-items:center;justify-content:center;font-family:var(--ff-head);font-size:11px;color:var(--txtmd);transition:all 0.3s}
+.step-dot.active .step-circle{border-color:var(--goldhi);background:var(--golddark);color:var(--goldhi);box-shadow:0 0 10px var(--gold)}
+.step-dot.done .step-circle{background:var(--golddark);border-color:var(--gold);color:var(--goldhi)}
+.step-label{font-family:var(--ff-head);font-size:8px;color:var(--txtmd);letter-spacing:0.05em;text-transform:uppercase}
+.step-dot.active .step-label{color:var(--goldhi)}
+.step-line{width:20px;height:1.5px;background:var(--golddark);opacity:0.4;margin-top:-14px}
+
+/* XP DISPLAY */
+#xp-display{position:fixed;top:12px;right:20px;z-index:101;font-family:var(--ff-head);font-size:12px;color:var(--goldhi);background:rgba(10,7,5,0.8);border:1px solid var(--golddark);border-radius:4px;padding:4px 10px;letter-spacing:0.1em}
+
+/* SCREENS */
+.screen{position:fixed;inset:0;z-index:10;overflow-y:auto;overflow-x:hidden;opacity:0;pointer-events:none;transition:opacity 0.5s ease,transform 0.5s ease;transform:translateX(40px)}
+.screen.active{opacity:1;pointer-events:all;transform:translateX(0)}
+.screen-inner{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:80px 20px 100px}
+
+/* PANELS */
+.panel{background:linear-gradient(160deg,#f5e9c0,#ead6a0,#dcc88a);border:1px solid var(--border);box-shadow:0 0 0 3px var(--bg),0 0 0 4px var(--border),0 8px 40px var(--shadow),inset 0 1px 0 rgba(255,255,255,0.3);border-radius:4px;color:var(--txt);position:relative}
+.panel::before{content:'';position:absolute;inset:6px;border:1px solid var(--golddark);border-radius:2px;pointer-events:none;opacity:0.5}
+.panel-inner{padding:30px 36px}
+
+/* TYPOGRAPHY */
+.title-main{font-family:var(--ff-title);font-size:clamp(1.8rem,4vw,3.2rem);font-weight:900;color:var(--goldhi);text-align:center;text-shadow:0 0 30px rgba(200,150,62,0.6),2px 2px 4px var(--shadow);letter-spacing:0.05em;line-height:1.2}
+.title-sub{font-family:var(--ff-title);font-size:clamp(0.9rem,2vw,1.3rem);font-weight:400;color:var(--txtmd);text-align:center;letter-spacing:0.15em;margin-top:8px}
+.section-title{font-family:var(--ff-title);font-size:clamp(1.2rem,2.5vw,1.8rem);font-weight:700;color:var(--goldhi);text-align:center;text-shadow:0 0 20px rgba(200,150,62,0.4);letter-spacing:0.08em;margin-bottom:6px}
+.section-sub{font-family:var(--ff-head);font-size:0.82rem;color:var(--txtmd);text-align:center;letter-spacing:0.08em;margin-bottom:24px;font-style:italic}
+.panel h3{font-family:var(--ff-head);font-size:1rem;color:var(--golddark);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;border-bottom:1px solid var(--parch3);padding-bottom:6px}
+.panel p{font-family:var(--ff-body);font-size:0.95rem;color:var(--txt);line-height:1.7;margin-bottom:10px}
+.panel em{font-style:italic;color:#5c3010}
+
+/* DIVIDER */
+.divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--golddark);opacity:0.6}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:linear-gradient(to right,transparent,var(--golddark),transparent)}
+.divider span{font-size:1.2rem}
+
+/* BUTTONS */
+.btn{font-family:var(--ff-head);font-size:0.78rem;letter-spacing:0.12em;text-transform:uppercase;border:1.5px solid var(--golddark);background:linear-gradient(to bottom,#2a1e0c,#1a1208);color:var(--txtmd);padding:9px 20px;cursor:pointer;border-radius:3px;transition:all 0.25s;position:relative;overflow:hidden}
+.btn::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(200,150,62,0.08),transparent);opacity:0;transition:opacity 0.25s}
+.btn:hover{border-color:var(--gold);color:var(--goldhi);box-shadow:0 0 12px rgba(200,150,62,0.25)}
+.btn:hover::after{opacity:1}
+.btn:active{transform:translateY(1px)}
+.btn-primary{border-color:var(--gold);color:var(--goldhi);background:linear-gradient(to bottom,#3a2810,#261a08);box-shadow:0 0 15px rgba(200,150,62,0.2),inset 0 1px 0 rgba(255,200,60,0.1)}
+.btn-primary:hover{box-shadow:0 0 25px rgba(200,150,62,0.4),inset 0 1px 0 rgba(255,200,60,0.15)}
+.btn-roll{border-color:var(--red);color:#e8a0a0;background:linear-gradient(to bottom,#2e0c0c,#1a0808);font-size:0.75rem;padding:7px 16px}
+.btn-roll:hover{border-color:var(--redhi);color:#ffc0c0;box-shadow:0 0 15px rgba(139,26,26,0.4)}
+.btn-sm{font-size:0.7rem;padding:5px 12px}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+
+/* NAV */
+#nav{position:fixed;bottom:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:14px 30px;background:linear-gradient(to top,rgba(10,7,5,0.98) 60%,transparent)}
+#nav .nav-center{font-family:var(--ff-head);font-size:0.75rem;color:var(--txtmd);letter-spacing:0.1em;opacity:0.7}
+
+/* WELCOME SCREEN */
+#s0{background:radial-gradient(ellipse at center,#1c1208 0%,#0a0705 70%)}
+#s0 .screen-inner{justify-content:center;padding:40px 20px}
+.welcome-crest{font-size:4rem;margin-bottom:20px;filter:drop-shadow(0 0 20px rgba(200,150,62,0.5))}
+.welcome-quote{font-family:var(--ff-body);font-style:italic;font-size:0.95rem;color:var(--txtmd);text-align:center;max-width:500px;line-height:1.8;margin:24px auto;padding:16px 24px;border-left:2px solid var(--golddark);border-right:2px solid var(--golddark)}
+.welcome-tagline{font-family:var(--ff-head);font-size:0.75rem;color:var(--txtmd);letter-spacing:0.3em;text-transform:uppercase;text-align:center;margin-bottom:36px;opacity:0.7}
+
+/* SPECIES SCREEN */
+.species-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;width:100%;max-width:980px;margin:0 auto}
+.species-card{background:linear-gradient(160deg,#f5e9c0,#ead6a0);border:1.5px solid var(--border);border-radius:4px;padding:18px 16px;cursor:pointer;transition:all 0.25s;text-align:center;position:relative;color:var(--txt)}
+.species-card::after{content:'';position:absolute;inset:4px;border:1px solid transparent;border-radius:2px;transition:border-color 0.25s}
+.species-card:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,0,0,0.5),0 0 15px rgba(200,150,62,0.2)}
+.species-card:hover::after{border-color:var(--golddark)}
+.species-card.selected{border-color:var(--goldhi);box-shadow:0 0 20px rgba(200,150,62,0.4),0 8px 25px rgba(0,0,0,0.5)}
+.species-card.selected::after{border-color:var(--gold)}
+.species-card.dimmed{opacity:0.45}
+.species-icon{font-size:2.2rem;margin-bottom:10px;display:block}
+.species-name{font-family:var(--ff-head);font-size:0.95rem;font-weight:700;color:var(--golddark);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
+.species-desc{font-family:var(--ff-body);font-size:0.8rem;color:var(--txt);line-height:1.5}
+.species-stats{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px;justify-content:center}
+.stat-pill{background:rgba(122,88,32,0.15);border:1px solid rgba(122,88,32,0.3);border-radius:3px;padding:2px 6px;font-family:var(--ff-head);font-size:0.65rem;color:var(--golddark);letter-spacing:0.05em}
+.roll-hint{font-family:var(--ff-head);font-size:0.72rem;color:var(--txtmd);text-align:center;margin-bottom:16px;letter-spacing:0.05em;opacity:0.8}
+
+/* XP BADGE */
+.xp-badge{display:inline-block;background:linear-gradient(to bottom,#2a2a08,#1a1a05);border:1px solid #8a8a20;border-radius:3px;padding:4px 10px;font-family:var(--ff-head);font-size:0.7rem;color:#e8e880;letter-spacing:0.1em;margin-left:8px;vertical-align:middle}
+
+/* DICE */
+.dice-area{display:flex;gap:12px;align-items:center;justify-content:center;margin:16px 0}
+.die{width:64px;height:64px;background:linear-gradient(145deg,#2c1810,#1a0e08);border:2px solid var(--golddark);border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:var(--ff-head);font-size:1.6rem;font-weight:700;color:var(--goldhi);box-shadow:inset 0 2px 4px rgba(0,0,0,0.5),0 4px 12px rgba(0,0,0,0.4);transition:border-color 0.3s;user-select:none}
+.die.rolling{animation:diceShake 0.6s ease-out}
+.die.landed{border-color:var(--goldhi);box-shadow:inset 0 2px 4px rgba(0,0,0,0.5),0 4px 12px rgba(0,0,0,0.4),0 0 15px rgba(200,150,62,0.3)}
+@keyframes diceShake{0%{transform:rotate(0)scale(1)}15%{transform:rotate(-15deg)scale(1.15)}30%{transform:rotate(12deg)scale(1.1)}45%{transform:rotate(-8deg)scale(1.05)}60%{transform:rotate(5deg)scale(1.02)}75%{transform:rotate(-2deg)scale(1.01)}100%{transform:rotate(0)scale(1)}}
+.roll-result{font-family:var(--ff-head);font-size:0.85rem;color:var(--goldhi);text-align:center;margin-top:6px;min-height:20px;letter-spacing:0.05em}
+
+/* CAREER SCREEN */
+.class-tabs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:18px}
+.class-tab{font-family:var(--ff-head);font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;border:1px solid var(--golddark);background:transparent;color:var(--txtmd);padding:6px 14px;cursor:pointer;border-radius:3px;transition:all 0.2s}
+.class-tab:hover{border-color:var(--gold);color:var(--goldhi)}
+.class-tab.active{background:var(--golddark);border-color:var(--goldhi);color:var(--goldhi)}
+.career-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+.career-card{background:linear-gradient(160deg,#f5e9c0,#e8d39a);border:1.5px solid var(--border);border-radius:4px;padding:14px 14px 12px;cursor:pointer;transition:all 0.2s;color:var(--txt)}
+.career-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.4)}
+.career-card.selected{border-color:var(--goldhi);box-shadow:0 0 15px rgba(200,150,62,0.3)}
+.career-card.unavailable{opacity:0.3;cursor:not-allowed}
+.career-card.unavailable:hover{transform:none;box-shadow:none}
+.career-name{font-family:var(--ff-head);font-size:0.82rem;font-weight:700;color:var(--golddark);letter-spacing:0.08em;text-transform:uppercase}
+.career-title{font-family:var(--ff-body);font-size:0.78rem;color:var(--txt);font-style:italic;margin-top:3px}
+.career-status{font-family:var(--ff-head);font-size:0.65rem;color:#8a6a30;margin-top:5px;letter-spacing:0.05em}
+.career-detail{background:linear-gradient(160deg,#f5e9c0,#ead6a0);border:1px solid var(--border);border-radius:4px;padding:20px 24px;margin-top:14px;color:var(--txt)}
+.career-detail h3{font-family:var(--ff-head);font-size:1.1rem;color:var(--golddark);margin-bottom:12px;letter-spacing:0.1em}
+.detail-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.detail-label{font-family:var(--ff-head);font-size:0.7rem;color:var(--golddark);letter-spacing:0.1em;text-transform:uppercase;min-width:70px}
+.tag{background:rgba(122,88,32,0.12);border:1px solid rgba(122,88,32,0.25);border-radius:3px;padding:2px 7px;font-family:var(--ff-body);font-size:0.75rem;color:var(--txt)}
+.roll-method-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;max-width:700px}
+.method-card{background:var(--panel);border:1.5px solid var(--golddark);border-radius:4px;padding:16px;cursor:pointer;transition:all 0.25s;text-align:center}
+.method-card:hover{border-color:var(--gold)}
+.method-card.selected{border-color:var(--goldhi);box-shadow:0 0 15px rgba(200,150,62,0.2)}
+.method-card .method-title{font-family:var(--ff-head);font-size:0.8rem;color:var(--goldhi);letter-spacing:0.1em;margin-bottom:6px}
+.method-card .method-desc{font-family:var(--ff-body);font-size:0.78rem;color:var(--txtmd);line-height:1.5}
+.method-card .method-xp{font-family:var(--ff-head);font-size:0.7rem;margin-top:8px}
+
+/* ATTRIBUTES */
+.attr-table{width:100%;border-collapse:collapse}
+.attr-table th{font-family:var(--ff-head);font-size:0.7rem;color:var(--golddark);letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;border-bottom:1px solid var(--parch3);text-align:left}
+.attr-table tr:hover td{background:rgba(122,88,32,0.07)}
+.attr-table td{padding:7px 10px;border-bottom:1px solid rgba(122,88,32,0.15);font-family:var(--ff-body);font-size:0.9rem;color:var(--txt);vertical-align:middle}
+.attr-name{font-family:var(--ff-head);font-size:0.78rem;font-weight:600;color:var(--golddark);letter-spacing:0.08em}
+.attr-formula{font-size:0.72rem;color:#8a6a30;font-family:var(--ff-body)}
+.attr-val{font-family:var(--ff-head);font-size:1.2rem;font-weight:700;color:var(--golddark);min-width:50px;text-align:center}
+.attr-val.rolled{color:var(--redhi)}
+.attr-bonus{font-family:var(--ff-head);font-size:0.8rem;color:var(--golddark);text-align:center;min-width:30px}
+.attr-input{width:55px;text-align:center;font-family:var(--ff-head);font-size:1.1rem;background:rgba(255,255,255,0.5);border:1px solid var(--parch3);border-radius:3px;padding:4px;color:var(--golddark)}
+.attr-input:focus{outline:none;border-color:var(--golddark);background:rgba(255,255,255,0.7)}
+
+/* SKILLS */
+.skills-two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+@media(max-width:700px){.skills-two-col{grid-template-columns:1fr}}
+.skill-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(122,88,32,0.15)}
+.skill-name{flex:1;font-family:var(--ff-body);font-size:0.85rem;color:var(--txt)}
+.skill-adv{display:flex;align-items:center;gap:4px}
+.adv-btn{width:22px;height:22px;border-radius:50%;border:1px solid var(--golddark);background:rgba(122,88,32,0.1);color:var(--golddark);font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;font-family:var(--ff-head);line-height:1}
+.adv-btn:hover{background:var(--golddark);color:var(--goldhi)}
+.adv-count{font-family:var(--ff-head);font-size:0.9rem;font-weight:700;color:var(--golddark);min-width:24px;text-align:center}
+.adv-bar{display:flex;gap:2px;margin-left:4px}
+.adv-pip{width:7px;height:7px;border-radius:50%;border:1px solid var(--golddark);background:transparent;transition:background 0.15s}
+.adv-pip.filled{background:var(--golddark)}
+.species-skill-check{display:flex;gap:6px;align-items:center;padding:5px 0;border-bottom:1px solid rgba(122,88,32,0.12)}
+.species-skill-check label{flex:1;font-family:var(--ff-body);font-size:0.85rem;color:var(--txt);cursor:pointer}
+.adv-selector{display:flex;gap:5px}
+.adv-lvl{font-family:var(--ff-head);font-size:0.65rem;border:1px solid var(--parch3);border-radius:3px;padding:2px 6px;cursor:pointer;background:transparent;color:var(--golddark);transition:all 0.2s}
+.adv-lvl.selected{background:var(--golddark);color:var(--goldhi);border-color:var(--gold)}
+.points-tracker{display:flex;align-items:center;gap:10px;padding:10px 0;margin-bottom:10px}
+.points-bar{flex:1;height:8px;background:rgba(122,88,32,0.2);border-radius:4px;overflow:hidden;border:1px solid rgba(122,88,32,0.3)}
+.points-fill{height:100%;background:linear-gradient(to right,var(--golddark),var(--goldhi));transition:width 0.3s;border-radius:4px}
+.points-text{font-family:var(--ff-head);font-size:0.75rem;color:var(--goldhi);min-width:70px;text-align:right}
+
+/* TALENTS */
+.talent-list{list-style:none}
+.talent-list li{padding:6px 0;border-bottom:1px solid rgba(122,88,32,0.12);font-family:var(--ff-body);font-size:0.88rem;color:var(--txt);display:flex;align-items:center;gap:8px}
+.talent-list li::before{content:'✦';color:var(--golddark);font-size:0.7rem;flex-shrink:0}
+.talent-auto{color:#8a6a30;font-style:italic}
+.talent-options{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.talent-opt{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1.5px solid var(--parch3);border-radius:4px;cursor:pointer;transition:all 0.2s;background:rgba(255,255,255,0.1)}
+.talent-opt:hover{border-color:var(--golddark);background:rgba(122,88,32,0.08)}
+.talent-opt.selected{border-color:var(--goldhi);background:rgba(122,88,32,0.15)}
+.talent-opt input[type=radio]{accent-color:var(--golddark)}
+.talent-opt label{font-family:var(--ff-body);font-size:0.88rem;color:var(--txt);cursor:pointer;flex:1}
+.doom-text{font-family:var(--ff-body);font-style:italic;font-size:0.9rem;color:var(--redhi);padding:10px 14px;background:rgba(139,26,26,0.08);border-left:3px solid var(--red);margin-top:8px;line-height:1.6}
+.random-talent-badge{display:inline-block;background:linear-gradient(to bottom,#2a1e0c,#1a1208);border:1px solid var(--golddark);border-radius:3px;padding:4px 10px;font-family:var(--ff-body);font-size:0.82rem;color:var(--txtmd);margin:3px}
+.random-talent-badge.revealed{border-color:var(--gold);color:var(--goldhi)}
+
+/* TRAPPINGS */
+.trapping-section{margin-bottom:16px}
+.trapping-section h4{font-family:var(--ff-head);font-size:0.75rem;color:var(--golddark);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.trapping-section h4::after{content:'';flex:1;height:1px;background:rgba(122,88,32,0.3)}
+.trapping-list{display:flex;flex-wrap:wrap;gap:6px}
+.trapping-item{background:rgba(122,88,32,0.1);border:1px solid rgba(122,88,32,0.25);border-radius:3px;padding:4px 10px;font-family:var(--ff-body);font-size:0.8rem;color:var(--txt)}
+.wealth-display{display:flex;gap:16px;align-items:center;justify-content:center;padding:14px;background:rgba(122,88,32,0.08);border:1px solid rgba(122,88,32,0.2);border-radius:4px;margin-top:10px}
+.coin{display:flex;flex-direction:column;align-items:center;gap:3px}
+.coin-val{font-family:var(--ff-head);font-size:1.5rem;font-weight:700}
+.coin-val.gc{color:#f0c040}
+.coin-val.ss{color:#c0c0c0}
+.coin-val.bp{color:#cd7f32}
+.coin-lbl{font-family:var(--ff-head);font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--txtmd)}
+
+/* DETAILS */
+.detail-form{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:600px){.detail-form{grid-template-columns:1fr}}
+.field-group{display:flex;flex-direction:column;gap:5px}
+.field-group.full-width{grid-column:1/-1}
+.field-group label{font-family:var(--ff-head);font-size:0.7rem;color:var(--golddark);letter-spacing:0.1em;text-transform:uppercase}
+.field-row{display:flex;gap:6px;align-items:center}
+.field-input{flex:1;background:rgba(255,255,255,0.5);border:1px solid var(--parch3);border-radius:3px;padding:8px 10px;font-family:var(--ff-body);font-size:0.9rem;color:var(--txt)}
+.field-input:focus{outline:none;border-color:var(--golddark);background:rgba(255,255,255,0.7)}
+.field-select{flex:1;background:rgba(255,255,255,0.5);border:1px solid var(--parch3);border-radius:3px;padding:8px 10px;font-family:var(--ff-body);font-size:0.88rem;color:var(--txt);cursor:pointer}
+.field-select:focus{outline:none;border-color:var(--golddark)}
+.field-textarea{width:100%;background:rgba(255,255,255,0.5);border:1px solid var(--parch3);border-radius:3px;padding:10px;font-family:var(--ff-body);font-size:0.88rem;color:var(--txt);resize:vertical;line-height:1.6;min-height:80px}
+.field-textarea:focus{outline:none;border-color:var(--golddark);background:rgba(255,255,255,0.7)}
+.personality-grid{display:flex;flex-wrap:wrap;gap:7px}
+.pers-chip{display:flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid var(--parch3);border-radius:20px;cursor:pointer;transition:all 0.2s;font-family:var(--ff-body);font-size:0.8rem;color:var(--txt)}
+.pers-chip:hover{border-color:var(--golddark)}
+.pers-chip.selected{border-color:var(--goldhi);background:rgba(122,88,32,0.15);color:var(--golddark)}
+.pers-chip input{display:none}
+
+/* BACKSTORY */
+.prompt-question{font-family:var(--ff-body);font-style:italic;font-size:0.88rem;color:var(--golddark);margin-bottom:5px;display:block}
+
+/* CHARACTER SHEET */
+#s9 .panel{max-width:800px;width:100%}
+.sheet-header{text-align:center;border-bottom:2px solid var(--parch3);padding-bottom:16px;margin-bottom:20px}
+.sheet-name{font-family:var(--ff-title);font-size:2rem;font-weight:700;color:var(--golddark)}
+.sheet-subtitle{font-family:var(--ff-head);font-size:0.85rem;color:#8a6a30;letter-spacing:0.1em}
+.sheet-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:600px){.sheet-grid{grid-template-columns:1fr}}
+.sheet-section h4{font-family:var(--ff-head);font-size:0.72rem;color:var(--golddark);letter-spacing:0.15em;text-transform:uppercase;border-bottom:1px solid var(--parch3);padding-bottom:5px;margin-bottom:10px}
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.stat-box{background:rgba(122,88,32,0.08);border:1px solid rgba(122,88,32,0.2);border-radius:3px;padding:7px 10px;display:flex;justify-content:space-between;align-items:center}
+.stat-box-name{font-family:var(--ff-head);font-size:0.68rem;color:var(--golddark);letter-spacing:0.08em;text-transform:uppercase}
+.stat-box-val{font-family:var(--ff-head);font-size:1.1rem;font-weight:700;color:var(--golddark)}
+.stat-box-bonus{font-family:var(--ff-head);font-size:0.72rem;color:#8a6a30;margin-left:4px}
+.derived-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.derived-box{flex:1;min-width:70px;background:rgba(122,88,32,0.08);border:1px solid rgba(122,88,32,0.2);border-radius:3px;padding:7px;text-align:center}
+.derived-box .d-name{font-family:var(--ff-head);font-size:0.62rem;color:var(--golddark);letter-spacing:0.08em;text-transform:uppercase;display:block;margin-bottom:3px}
+.derived-box .d-val{font-family:var(--ff-head);font-size:1.2rem;font-weight:700;color:var(--golddark)}
+.skill-sheet-item{padding:4px 0;border-bottom:1px solid rgba(122,88,32,0.1);display:flex;justify-content:space-between;font-family:var(--ff-body);font-size:0.82rem;color:var(--txt)}
+.skill-sheet-val{font-family:var(--ff-head);font-size:0.82rem;font-weight:600;color:var(--golddark)}
+.talent-sheet-item{padding:3px 0;font-family:var(--ff-body);font-size:0.82rem;color:var(--txt);display:flex;align-items:center;gap:6px}
+.talent-sheet-item::before{content:'✦';color:var(--golddark);font-size:0.65rem}
+.detail-info{font-family:var(--ff-body);font-size:0.85rem;color:var(--txt);line-height:1.8}
+.detail-info strong{font-family:var(--ff-head);font-size:0.7rem;color:var(--golddark);letter-spacing:0.08em;text-transform:uppercase;display:inline-block;min-width:80px}
+.backstory-text{font-family:var(--ff-body);font-style:italic;font-size:0.88rem;color:var(--txt);line-height:1.7;margin-top:6px;white-space:pre-wrap}
+.sheet-actions{display:flex;gap:10px;justify-content:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--parch3)}
+
+/* NOTIFICATION */
+.notif{position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:200;background:var(--golddark);color:var(--goldhi);font-family:var(--ff-head);font-size:0.78rem;letter-spacing:0.1em;padding:8px 20px;border-radius:3px;border:1px solid var(--goldhi);opacity:0;transition:opacity 0.3s;pointer-events:none}
+.notif.show{opacity:1}
+
+/* IMAGE PROMPT MODAL */
+.img-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.3s}
+.img-modal-overlay.show{opacity:1;pointer-events:all}
+.img-modal{background:linear-gradient(160deg,#f5e9c0,#e8d39a);border:1.5px solid var(--border);box-shadow:0 0 0 3px var(--bg),0 0 0 4px var(--border),0 20px 60px rgba(0,0,0,0.9);border-radius:6px;max-width:680px;width:100%;padding:28px 32px;color:var(--txt);position:relative}
+.img-modal::before{content:'';position:absolute;inset:8px;border:1px solid rgba(122,88,32,0.35);border-radius:3px;pointer-events:none}
+.img-modal h3{font-family:var(--ff-title);font-size:1.1rem;color:var(--golddark);margin-bottom:4px;letter-spacing:0.08em}
+.img-modal .modal-sub{font-family:var(--ff-head);font-size:0.7rem;color:var(--golddark);letter-spacing:0.1em;opacity:0.7;margin-bottom:14px}
+.img-prompt-box{background:rgba(255,255,255,0.55);border:1px solid var(--parch3);border-radius:4px;padding:14px;font-family:var(--ff-body);font-size:0.88rem;color:var(--txt);line-height:1.75;white-space:pre-wrap;max-height:280px;overflow-y:auto;cursor:text;user-select:all;margin-bottom:14px}
+.img-modal-btns{display:flex;gap:10px;align-items:center;justify-content:flex-end}
+.copy-feedback{font-family:var(--ff-head);font-size:0.72rem;color:#5a8a3a;letter-spacing:0.1em;opacity:0;transition:opacity 0.3s;margin-right:auto}
+.copy-feedback.show{opacity:1}
+
+.tip{position:fixed;z-index:500;max-width:270px;background:linear-gradient(160deg,#211508,#150f06);border:1px solid var(--golddark);border-radius:4px;padding:9px 13px;font-family:var(--ff-body);font-size:0.82rem;color:var(--txtlt);line-height:1.55;pointer-events:none;box-shadow:0 6px 24px rgba(0,0,0,0.85);opacity:0;transition:opacity 0.18s;display:none}
+.tip.show{opacity:1;display:block}
+[data-tip]{cursor:help;border-bottom:1px dotted rgba(200,150,62,0.35);transition:border-color 0.2s}
+[data-tip]:hover{border-bottom-color:rgba(200,150,62,0.8)}
+/* PRINT */
+@media print{
+  #progress,#nav,#xp-display,#particles-canvas,.sheet-actions,.btn{display:none!important}
+  body{background:white;overflow:auto}
+  .screen{position:static;opacity:1;pointer-events:all;transform:none;overflow:visible}
+  .screen:not(#s9){display:none}
+  .screen-inner{padding:10px;min-height:auto}
+  .panel{box-shadow:none;border:1px solid #ccc}
+}
+</style>
+</head>
+<body>
+<canvas id="particles-canvas"></canvas>
+<div id="progress" style="display:none">
+  <div class="step-dot" id="sd1" onclick="goToStep(1)"><div class="step-circle">1</div><div class="step-label">Species</div></div>
+  <div class="step-line"></div>
+  <div class="step-dot" id="sd2" onclick="goToStep(2)"><div class="step-circle">2</div><div class="step-label">Career</div></div>
+  <div class="step-line"></div>
+  <div class="step-dot" id="sd3" onclick="goToStep(3)"><div class="step-circle">3</div><div class="step-label">Stats</div></div>
+  <div class="step-line"></div>
+  <div class="step-dot" id="sd4" onclick="goToStep(4)"><div class="step-circle">4</div><div class="step-label">Skills</div></div>
+  <div class="step-line"></div>
+  <div class="step-dot" id="sd5" onclick="goToStep(5)"><div class="step-circle">5</div><div class="step-label">Talents</div></div>
+  <div class="step-line"></div>
+  <div class="step-dot" id="sd6" onclick="goToStep(6)"><div class="step-circle">6</div><div class="step-label">Items</div></div>
+  <div class="step-line"></div>
+  <div class="step-dot" id="sd7" onclick="goToStep(7)"><div class="step-circle">7</div><div class="step-label">Details</div></div>
+  <div class="step-line"></div>
+  <div class="step-dot" id="sd8" onclick="goToStep(8)"><div class="step-circle">8</div><div class="step-label">Story</div></div>
+  <div class="step-line"></div>
+  <div class="step-dot" id="sd9" onclick="goToStep(9)"><div class="step-circle">✦</div><div class="step-label">Sheet</div></div>
+</div>
+<div id="xp-display" style="display:none">XP Bonus: <span id="xp-val">0</span></div>
+<div class="notif" id="notif"></div>
+<div class="tip" id="global-tip"></div>
+
+<!-- SCREEN 0: WELCOME -->
+<div class="screen active" id="s0">
+  <div class="screen-inner">
+    <div class="welcome-crest">☠</div>
+    <div class="title-main">Warhammer Fantasy Roleplay</div>
+    <div class="title-sub">Character Creator</div>
+    <div class="welcome-quote">"A grim world of perilous adventure. Where the shadow of Chaos looms, brave souls must rise — or be consumed."</div>
+    <div class="welcome-tagline">Step by step · Roll the dice · Forge your fate</div>
+    <button class="btn btn-primary" style="font-size:0.9rem;padding:13px 36px;margin-bottom:20px" onclick="startCreation()">Begin Your Legend</button>
+    <p style="font-family:var(--ff-head);font-size:0.7rem;color:var(--txtmd);text-align:center;opacity:0.5;letter-spacing:0.1em">WFRP 4th Edition · All five species · 64 careers</p>
+  </div>
+</div>
+
+<!-- SCREEN 1: SPECIES -->
+<div class="screen" id="s1">
+  <div class="screen-inner">
+    <div class="title-main">Choose Your Heritage</div>
+    <div class="section-sub">Who are you, in this grim world?</div>
+    <div style="display:flex;gap:12px;align-items:center;justify-content:center;margin-bottom:18px;flex-wrap:wrap">
+      <button class="btn btn-roll" onclick="rollSpecies()">🎲 Roll for me (d100) <span class="xp-badge">+20 XP</span></button>
+      <div class="roll-hint">— or choose freely below —</div>
+    </div>
+    <div class="dice-area" id="species-dice-area" style="display:none">
+      <div class="die" id="species-die-tens">?</div>
+      <div style="font-family:var(--ff-head);font-size:0.75rem;color:var(--goldhi);align-self:center;opacity:0.5;letter-spacing:0.05em">%</div>
+      <div class="die" id="species-die-units">?</div>
+    </div>
+    <div class="roll-result" id="species-roll-result"></div>
+    <div class="species-grid" id="species-grid"></div>
+  </div>
+</div>
+
+<!-- SCREEN 2: CAREER -->
+<div class="screen" id="s2">
+  <div class="screen-inner">
+    <div class="title-main">Your Calling</div>
+    <div class="section-sub">What path has fate laid before you?</div>
+    <div style="max-width:700px;width:100%;margin:0 auto 20px">
+      <div class="roll-method-grid" id="career-method-grid">
+        <div class="method-card selected" id="cmethod-roll1" onclick="selectCareerMethod('roll1')">
+          <div class="method-title">🎲 First Roll Stands</div>
+          <div class="method-desc">Roll once and accept your fate — the Chaos Wastes await the bold</div>
+          <div class="method-xp xp-badge">+50 XP</div>
+        </div>
+        <div class="method-card" id="cmethod-roll3" onclick="selectCareerMethod('roll3')">
+          <div class="method-title">🎲🎲🎲 Roll Three</div>
+          <div class="method-desc">Roll three times and choose from what fate offers</div>
+          <div class="method-xp xp-badge">+25 XP</div>
+        </div>
+        <div class="method-card" id="cmethod-free" onclick="selectCareerMethod('free')">
+          <div class="method-title">✋ Free Choice</div>
+          <div class="method-desc">Choose your career freely — no bonus, but your story, your way</div>
+          <div class="method-xp" style="color:var(--txtmd);font-family:var(--ff-head);font-size:0.7rem;margin-top:8px">+0 XP</div>
+        </div>
+      </div>
+      <div id="career-roll-area" style="text-align:center;margin-bottom:16px">
+        <button class="btn btn-roll" id="btn-roll-career" onclick="rollCareer()" style="display:none">🎲 Roll Career</button>
+        <div class="dice-area" id="career-dice-area" style="display:none">
+          <div class="die" id="career-die-tens">?</div>
+          <div style="font-family:var(--ff-head);font-size:0.75rem;color:var(--goldhi);align-self:center;opacity:0.5;letter-spacing:0.05em">%</div>
+          <div class="die" id="career-die-units">?</div>
+        </div>
+        <div class="roll-result" id="career-roll-result"></div>
+        <div id="career-roll-choices" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px"></div>
+      </div>
+      <div class="class-tabs" id="class-tabs"></div>
+      <div class="career-grid" id="career-grid"></div>
+      <div id="career-detail-panel" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 3: ATTRIBUTES -->
+<div class="screen" id="s3">
+  <div class="screen-inner">
+    <div class="title-main">Natural Gifts</div>
+    <div class="section-sub">Roll, rearrange, or shape your own destiny</div>
+    <div style="max-width:760px;width:100%;margin:0 auto">
+      <div class="roll-method-grid" style="grid-template-columns:repeat(3,1fr)" id="attr-method-grid">
+        <div class="method-card selected" id="amethod-roll" onclick="selectAttrMethod('roll')">
+          <div class="method-title">🎲 Roll &amp; Keep</div>
+          <div class="method-desc">Roll 2d10 for each stat and accept the results</div>
+          <div class="method-xp xp-badge">+50 XP</div>
+        </div>
+        <div class="method-card" id="amethod-rearrange" onclick="selectAttrMethod('rearrange')">
+          <div class="method-title">🎲 Roll &amp; Arrange</div>
+          <div class="method-desc">Roll 10 sets of 2d10 and assign them as you like</div>
+          <div class="method-xp xp-badge">+25 XP</div>
+        </div>
+        <div class="method-card" id="amethod-pointbuy" onclick="selectAttrMethod('pointbuy')">
+          <div class="method-title">✋ Point Buy</div>
+          <div class="method-desc">Allocate 100 points across your stats (min 4, max 18 each)</div>
+          <div class="method-xp" style="color:var(--txtmd);font-family:var(--ff-head);font-size:0.7rem;margin-top:8px">+0 XP</div>
+        </div>
+      </div>
+      <div id="attr-roll-controls" style="text-align:center;margin-bottom:12px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-roll" id="btn-roll-all-attrs" onclick="rollAllAttrs()">🎲 Roll All Stats</button>
+        <div id="attr-rearrange-pool" style="display:none;background:var(--panel);border:1px solid var(--golddark);border-radius:4px;padding:12px 16px;width:100%;max-width:500px">
+          <div style="font-family:var(--ff-head);font-size:0.75rem;color:var(--goldhi);margin-bottom:8px;letter-spacing:0.1em">ROLLED VALUES — Click to assign to highlighted stat</div>
+          <div id="pool-values" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+        </div>
+        <div id="attr-pointbuy-info" style="display:none;font-family:var(--ff-head);font-size:0.78rem;color:var(--goldhi);padding:8px 16px;background:var(--panel);border:1px solid var(--golddark);border-radius:4px">
+          Points remaining: <span id="pb-remaining">100</span>
+        </div>
+      </div>
+      <div class="panel" style="overflow-x:auto">
+        <div class="panel-inner" style="padding:16px 20px">
+          <table class="attr-table" id="attr-table">
+            <thead><tr>
+              <th>Characteristic</th><th>Formula</th><th style="text-align:center">Value</th><th style="text-align:center">Bonus</th><th></th>
+            </tr></thead>
+            <tbody id="attr-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="attr-derived" style="margin-top:12px;display:none">
+        <div class="panel"><div class="panel-inner" style="padding:14px 20px">
+          <h3>Derived Statistics</h3>
+          <div class="derived-row" id="derived-row"></div>
+          <div style="margin-top:8px;font-family:var(--ff-head);font-size:0.72rem;color:var(--golddark);letter-spacing:0.05em">
+            Extra Points: <span id="extra-pts-display">0</span> — allocate between Fate and Resilience:
+            <div style="display:flex;gap:10px;margin-top:8px;align-items:center;flex-wrap:wrap">
+              <label style="font-family:var(--ff-head);font-size:0.7rem;color:var(--goldhi)">+Fate: <input type="number" id="extra-fate" min="0" value="0" style="width:45px;background:var(--panel);border:1px solid var(--golddark);color:var(--goldhi);font-family:var(--ff-head);padding:3px 5px;border-radius:3px" oninput="updateExtraPoints()"></label>
+              <label style="font-family:var(--ff-head);font-size:0.7rem;color:var(--goldhi)">+Resilience: <input type="number" id="extra-res" min="0" value="0" style="width:45px;background:var(--panel);border:1px solid var(--golddark);color:var(--goldhi);font-family:var(--ff-head);padding:3px 5px;border-radius:3px" oninput="updateExtraPoints()"></label>
+              <span id="extra-remaining" style="font-family:var(--ff-head);font-size:0.72rem;color:var(--goldhi)"></span>
+            </div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 4: SKILLS -->
+<div class="screen" id="s4">
+  <div class="screen-inner">
+    <div class="title-main">Honed Abilities</div>
+    <div class="section-sub">Your training and experience take shape</div>
+    <div style="max-width:860px;width:100%;margin:0 auto">
+      <div class="skills-two-col">
+        <div class="panel"><div class="panel-inner">
+          <h3>Species Skills</h3>
+          <p style="font-size:0.8rem;margin-bottom:12px">Choose <strong>3 skills</strong> to advance by +5 and <strong>3 skills</strong> to advance by +3.</p>
+          <div style="display:flex;gap:8px;margin-bottom:10px;font-family:var(--ff-head);font-size:0.72rem;color:var(--goldhi)">
+            <span>+5 chosen: <span id="sp5-count">0</span>/3</span>
+            <span>·</span>
+            <span>+3 chosen: <span id="sp3-count">0</span>/3</span>
+          </div>
+          <div id="species-skills-list"></div>
+        </div></div>
+        <div class="panel"><div class="panel-inner">
+          <h3>Career Skills</h3>
+          <p style="font-size:0.8rem;margin-bottom:10px">Distribute <strong>40 advances</strong> across your career skills (max 10 per skill).</p>
+          <div class="points-tracker">
+            <div class="points-bar"><div class="points-fill" id="career-skill-fill" style="width:0%"></div></div>
+            <div class="points-text"><span id="career-skill-used">0</span>/40</div>
+          </div>
+          <div id="career-skills-list"></div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 5: TALENTS -->
+<div class="screen" id="s5">
+  <div class="screen-inner">
+    <div class="title-main">Special Abilities</div>
+    <div class="section-sub">The gifts that set you apart</div>
+    <div style="max-width:760px;width:100%;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:16px" id="talents-grid">
+      <div class="panel"><div class="panel-inner">
+        <h3>Species Talents</h3>
+        <div id="auto-talents-list"></div>
+        <div id="species-choice-talents"></div>
+        <div id="random-talents-section" style="display:none">
+          <div class="divider"><span>⚄</span></div>
+          <h3>Random Talents</h3>
+          <p style="font-size:0.8rem;margin-bottom:10px">Roll to reveal your innate gifts.</p>
+          <div id="random-talent-slots"></div>
+          <button class="btn btn-roll btn-sm" style="margin-top:8px" id="btn-roll-randoms" onclick="rollRandomTalents()">🎲 Roll All</button>
+        </div>
+        <div id="doom-section" style="display:none">
+          <div class="divider"><span>☠</span></div>
+          <h3>Your Doom</h3>
+          <p style="font-size:0.8rem;margin-bottom:8px">Every Human is <em>Doomed</em>. Roll to learn your fate — or choose.</p>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <button class="btn btn-roll btn-sm" onclick="rollDoom()">🎲 Roll Doom</button>
+          </div>
+          <div class="doom-text" id="doom-text" style="display:none"></div>
+          <div id="doom-selector" style="display:none;margin-top:8px">
+            <select class="field-select" id="doom-select" onchange="selectDoom()" style="width:100%;font-size:0.8rem">
+              <option value="">— Select a doom —</option>
+            </select>
+          </div>
+        </div>
+      </div></div>
+      <div class="panel"><div class="panel-inner">
+        <h3>Career Talent</h3>
+        <p style="font-size:0.8rem;margin-bottom:12px">Choose one talent from your career's starting list.</p>
+        <div id="career-talent-options"></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 6: TRAPPINGS -->
+<div class="screen" id="s6">
+  <div class="screen-inner">
+    <div class="title-main">Worldly Possessions</div>
+    <div class="section-sub">Everything you carry into the darkness</div>
+    <div style="max-width:760px;width:100%;margin:0 auto">
+      <div class="panel"><div class="panel-inner">
+        <div id="trappings-content"></div>
+        <div class="divider"><span>⚜</span></div>
+        <h3>Starting Wealth</h3>
+        <div class="wealth-display" id="wealth-display">
+          <div class="coin"><div class="coin-val gc" id="w-gc">0</div><div class="coin-lbl">Gold Crowns</div></div>
+          <div class="coin"><div class="coin-val ss" id="w-ss">0</div><div class="coin-lbl">Silver Shillings</div></div>
+          <div class="coin"><div class="coin-val bp" id="w-bp">0</div><div class="coin-lbl">Brass Pennies</div></div>
+        </div>
+        <div style="text-align:center;margin-top:10px">
+          <button class="btn btn-roll btn-sm" onclick="rollWealth()">🎲 Roll Starting Wealth</button>
+        </div>
+        <div class="divider"><span>✦</span></div>
+        <h3>Personal Items</h3>
+        <p style="font-size:0.8rem;margin-bottom:8px">Add any personal belongings, keepsakes, or inherited items.</p>
+        <textarea class="field-textarea" id="personal-items" placeholder="A locket containing a faded portrait... a lucky rabbit's foot... your grandfather's battered knife..." style="min-height:60px"></textarea>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 7: DETAILS -->
+<div class="screen" id="s7">
+  <div class="screen-inner">
+    <div class="title-main">Your Face to the World</div>
+    <div class="section-sub">How does the world see you?</div>
+    <div style="max-width:760px;width:100%;margin:0 auto">
+      <div class="panel"><div class="panel-inner">
+        <div class="detail-form">
+          <div class="field-group full-width">
+            <label>Character Name</label>
+            <div class="field-row">
+              <input type="text" class="field-input" id="char-name" placeholder="Name your character..." oninput="char.details.name=this.value">
+              <select class="field-select" id="name-gender" style="flex:0 0 90px">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+              <button class="btn btn-sm" onclick="generateName()">🎲 Generate</button>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Age</label>
+            <div class="field-row">
+              <input type="number" class="field-input" id="char-age" placeholder="Years..." oninput="char.details.age=+this.value">
+              <button class="btn btn-roll btn-sm" onclick="rollAge()">🎲</button>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Height</label>
+            <div class="field-row">
+              <input type="text" class="field-input" id="char-height" placeholder='e.g. 5'10"' oninput="char.details.height=this.value">
+              <button class="btn btn-roll btn-sm" onclick="rollHeight()">🎲</button>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Eye Colour</label>
+            <div class="field-row">
+              <select class="field-select" id="char-eyes" onchange="char.details.eyeColor=this.value"></select>
+              <button class="btn btn-roll btn-sm" onclick="rollEyes()">🎲</button>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Hair Colour</label>
+            <div class="field-row">
+              <select class="field-select" id="char-hair" onchange="char.details.hairColor=this.value"></select>
+              <button class="btn btn-roll btn-sm" onclick="rollHair()">🎲</button>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Star Sign</label>
+            <div class="field-row">
+              <select class="field-select" id="char-sign" onchange="char.details.starSign=this.value"></select>
+              <button class="btn btn-roll btn-sm" onclick="rollStarSign()">🎲</button>
+            </div>
+          </div>
+          <div class="field-group full-width">
+            <label>Distinguishing Marks</label>
+            <div class="field-row">
+              <input type="text" class="field-input" id="char-marks" placeholder="What makes you recognisable at a glance?" oninput="char.details.marks=this.value">
+              <button class="btn btn-sm" onclick="suggestMark()">💡 Suggest</button>
+            </div>
+          </div>
+        </div>
+        <div class="divider"><span>✦</span></div>
+        <div class="field-group">
+          <label>Personality Traits</label>
+          <p style="font-size:0.78rem;color:var(--txt);margin-bottom:8px">Select all that apply.</p>
+          <div class="personality-grid" id="personality-grid"></div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 8: BACKSTORY -->
+<div class="screen" id="s8">
+  <div class="screen-inner">
+    <div class="title-main">Your Story</div>
+    <div class="section-sub">Every soul has a history — what is yours?</div>
+    <div style="max-width:760px;width:100%;margin:0 auto">
+      <div class="panel"><div class="panel-inner">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="field-group">
+            <label>Short-Term Ambition</label>
+            <span class="prompt-question">What do you hope to achieve in the coming weeks?</span>
+            <textarea class="field-textarea" id="short-ambition" placeholder="Find the man who killed my father. Earn enough to buy a horse. Discover what lurks beneath the old mill..." oninput="char.backstory.shortAmbition=this.value"></textarea>
+            <span style="font-family:var(--ff-head);font-size:0.65rem;color:var(--golddark);margin-top:3px">Completing this grants +50 XP</span>
+          </div>
+          <div class="field-group">
+            <label>Long-Term Ambition</label>
+            <span class="prompt-question">What drives you across years of hardship?</span>
+            <textarea class="field-textarea" id="long-ambition" placeholder="Become the greatest swordsman in the Reikland. Restore my family's honour. Find the cure before the curse takes hold..." oninput="char.backstory.longAmbition=this.value"></textarea>
+            <span style="font-family:var(--ff-head);font-size:0.65rem;color:var(--golddark);margin-top:3px">Completing this grants +500 XP or retirement</span>
+          </div>
+        </div>
+        <div class="divider"><span>✦</span></div>
+        <div class="field-group" style="margin-bottom:16px">
+          <label>Motivation</label>
+          <span class="prompt-question">What truly drives you — beneath the surface ambitions?</span>
+          <textarea class="field-textarea" id="motivation" placeholder="Survival, revenge, love, duty, curiosity, redemption..." oninput="char.backstory.motivation=this.value"></textarea>
+        </div>
+        <div class="field-group" style="margin-bottom:16px">
+          <label>Background</label>
+          <span class="prompt-question">Where do you come from, and what brought you to this life?</span>
+          <textarea class="field-textarea" style="min-height:120px" id="bg-story" placeholder="Raised in the shadow of the Grey Mountains... apprenticed to a disgraced wizard who vanished one winter's night... the village burned, and only I walked away..." oninput="char.backstory.story=this.value"></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="field-group">
+            <label>Greatest Fear</label>
+            <textarea class="field-textarea" style="min-height:60px" id="fear" placeholder="What keeps you awake at night?" oninput="char.backstory.fear=this.value"></textarea>
+          </div>
+          <div class="field-group">
+            <label>What You'd Sacrifice Everything For</label>
+            <textarea class="field-textarea" style="min-height:60px" id="sacrifice" placeholder="What matters above all else?" oninput="char.backstory.sacrifice=this.value"></textarea>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 9: CHARACTER SHEET -->
+<div class="screen" id="s9">
+  <div class="screen-inner">
+    <div class="title-main" style="margin-bottom:16px">Thy Fate is Sealed</div>
+    <div class="panel" style="max-width:800px;width:100%">
+      <div class="panel-inner">
+        <div id="sheet-content"></div>
+        <div class="sheet-actions">
+          <button class="btn btn-primary" onclick="printSheet()">🖨 Print Sheet</button>
+          <button class="btn" onclick="exportJSON()">💾 Save as JSON</button>
+          <button class="btn" onclick="showImagePrompt()" style="border-color:#7a5890;color:#c8a0e0">🎨 Copy Image Prompt</button>
+          <button class="btn" onclick="startOver()" style="border-color:var(--red);color:#e8a0a0">↩ Start Over</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- IMAGE PROMPT MODAL -->
+<div class="img-modal-overlay" id="img-modal-overlay" onclick="closeImagePrompt(event)">
+  <div class="img-modal" onclick="event.stopPropagation()">
+    <h3>🎨 Character Image Prompt</h3>
+    <div class="modal-sub">Paste into Nanobanana or your preferred image generator</div>
+    <div class="img-prompt-box" id="img-prompt-text"></div>
+    <div class="img-modal-btns">
+      <span class="copy-feedback" id="copy-feedback">✓ Copied to clipboard!</span>
+      <button class="btn btn-sm" onclick="closeImagePrompt()">Close</button>
+      <button class="btn btn-primary btn-sm" onclick="copyImagePrompt()">📋 Copy to Clipboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAVIGATION -->
+<div id="nav" style="display:none">
+  <button class="btn" id="btn-back" onclick="goBack()">← Back</button>
+  <div class="nav-center" id="nav-step-label"></div>
+  <button class="btn btn-primary" id="btn-next" onclick="goNext()">Next →</button>
+</div>
+
+<script>
+// ===================== DATA =====================
+const CAREERS = [{"class":"Academics","name":"Apothecary","species":["Dwarf","Halfling","High Elf","Human"],"levels":[{"level":1,"title":"Apprentice Apothecary","status":"Brass 3","skills":["Consume Alcohol","Heal","Language (Classical)","Lore (Chemistry)","Lore (Medicine)","Lore (Plants)","Trade (Apothecary)","Trade (Poisoner)"],"talents":["Concoct","Craftsman (Apothecary)","Etiquette (Scholar)","Read/Write"],"trappings":["Book (Blank)","Healing Draught","Leather Jerkin","Pestle and Mortar"]}]},{"class":"Academics","name":"Engineer","species":["Dwarf","Halfling","Human"],"levels":[{"level":1,"title":"Student Engineer","status":"Brass 4","skills":["Consume Alcohol","Cool","Endurance","Language (Classical)","Lore (Engineer)","Perception","Ranged (Blackpowder)","Trade (Engineer)"],"talents":["Artistic","Gunner","Read/Write","Tinker"],"trappings":["Book (Engineer)","Hammer and Spikes"]}]},{"class":"Academics","name":"Lawyer","species":["Dwarf","Halfling","High Elf","Human"],"levels":[{"level":1,"title":"Student Lawyer","status":"Brass 4","skills":["Consume Alcohol","Endurance","Haggle","Language (Classical)","Lore (Law)","Lore (Theology)","Perception","Research"],"talents":["Blather","Etiquette (Scholar)","Read/Write","Speedreader"],"trappings":["Book (Law)","Magnifying Glass"]}]},{"class":"Academics","name":"Nun","species":["Human"],"levels":[{"level":1,"title":"Novitiate","status":"Brass 1","skills":["Art (Calligraphy)","Cool","Endurance","Entertain (Storyteller)","Gossip","Heal","Lore (Theology)","Pray"],"talents":["Bless (Any)","Stone Soup","Panhandle","Read/Write"],"trappings":["Religious Symbol","Robes"]}]},{"class":"Academics","name":"Physician","species":["Dwarf","Halfling","High Elf","Human"],"levels":[{"level":1,"title":"Physician's Apprentice","status":"Brass 4","skills":["Bribery","Cool","Drive","Endurance","Gossip","Heal","Perception","Sleight of Hand"],"talents":["Bookish","Field Dressing","Read/Write","Strike to Stun"],"trappings":["Bandages","Healing Draught"]}]},{"class":"Academics","name":"Priest","species":["Human"],"levels":[{"level":1,"title":"Initiate","status":"Brass 2","skills":["Athletics","Cool","Endurance","Intuition","Lore (Theology)","Perception","Pray","Research"],"talents":["Bless (Any)","Holy Visions","Read/Write","Suave"],"trappings":["Religious Symbol","Robes"]}]},{"class":"Academics","name":"Scholar","species":["Dwarf","Halfling","High Elf","Human","Wood Elf"],"levels":[{"level":1,"title":"Student","status":"Brass 3","skills":["Consume Alcohol","Entertain (Storytelling)","Gamble","Gossip","Haggle","Language (Classical)","Lore (Any)","Research"],"talents":["Carouser","Read/Write","Savvy","Super Numerate"],"trappings":["Alcohol","Book","Opinions","Writing Kit"]}]},{"class":"Academics","name":"Wizard","species":["High Elf","Human","Wood Elf"],"levels":[{"level":1,"title":"Wizard's Apprentice","status":"Brass 3","skills":["Channelling (Any Colour)","Dodge","Intuition","Language (Magick)","Lore (Magic)","Melee (Basic)","Melee (Polearm)","Perception"],"talents":["Aethyric Attunement","Petty Magic","Read/Write","Second Sight"],"trappings":["Grimoire","Quarterstaff"]}]},{"class":"Burghers","name":"Agitator","species":["Dwarf","Halfling","Human"],"levels":[{"level":1,"title":"Pamphleteer","status":"Brass 1","skills":["Art (Writing)","Bribery","Charm","Consume Alcohol","Gossip","Haggle","Lore (Politics)","Trade (Printing)"],"talents":["Blather","Gregarious","Panhandle","Read/Write"],"trappings":["Writing Kit","Hammer and Nails","Pile of Leaflets"]}]},{"class":"Burghers","name":"Artisan","species":["Dwarf","Halfling","High Elf","Human","Wood Elf"],"levels":[{"level":1,"title":"Apprentice Artisan","status":"Brass 2","skills":["Athletics","Cool","Consume Alcohol","Dodge","Endurance","Evaluate","Stealth (Urban)","Trade (Any)"],"talents":["Artistic","Craftsman (Any)","Strong Back","Very Strong"],"trappings":["Chalk","Leather Jerkin","d10 Rags"]}]},{"class":"Burghers","name":"Beggar","species":["Dwarf","Halfling","Human"],"levels":[{"level":1,"title":"Pauper","status":"Brass 0","skills":["Athletics","Charm","Consume Alcohol","Cool","Dodge","Endurance","Intuition","Stealth (Urban)"],"talents":["Panhandle","Resistance (Disease)","Stone Soup","Very Resilient"],"trappings":["Poor Quality Blanket","Cup"]}]},{"class":"Burghers","name":"Investigator","species":["Dwarf","Halfling","High Elf","Human"],"levels":[{"level":1,"title":"Sleuth","status":"Silver 1","skills":["Charm","Climb","Cool","Gossip","Intuition","Perception","Stealth (Urban)","Track"],"talents":["Alley Cat","Beneath Notice","Read/Write","Sharp"],"trappings":["Lantern","Lamp Oil","Journal","Quill and Ink"]}]},{"class":"Burghers","name":"Merchant","species":["Dwarf","Halfling","High Elf","Human"],"levels":[{"level":1,"title":"Trader","status":"Silver 2","skills":["Animal Care","Bribery","Charm","Consume Alcohol","Drive","Gamble","Gossip","Haggle"],"talents":["Blather","Dealmaker","Read/Write","Suave"],"trappings":["Abacus","Mule and Cart","Canvas Tarpaulin","3d10 Silver Shillings"]}]},{"class":"Burghers","name":"Rat Catcher","species":["Dwarf","Halfling","Human"],"levels":[{"level":1,"title":"Rat Hunter","status":"Brass 3","skills":["Athletics","Animal Training (Dog)","Charm Animal","Consume Alcohol","Endurance","Melee (Basic)","Ranged (Sling)","Stealth (Underground or Urban)"],"talents":["Night Vision","Resistance (Disease)","Strike Mighty Blow","Strike to Stun"],"trappings":["Sling with Ammunition","Sack","Small but Vicious Dog"]}]},{"class":"Burghers","name":"Townsman","species":["Dwarf","Halfling","High Elf","Human"],"levels":[{"level":1,"title":"Clerk","status":"Silver 1","skills":["Charm","Climb","Consume Alcohol","Drive","Dodge","Gamble","Gossip","Haggle"],"talents":["Alley Cat","Beneath Notice","Etiquette (Servants)","Sturdy"],"trappings":["Lodgings","Sturdy Boots"]}]},{"class":"Burghers","name":"Watchman","species":["Dwarf","Halfling","High Elf","Human"],"levels":[{"level":1,"title":"Watch Recruit","status":"Brass 3","skills":["Athletics","Climb","Consume Alcohol","Dodge","Endurance","Gamble","Melee (Any)","Perception"],"talents":["Drilled","Hardy","Strike to Stun","Tenacious"],"trappings":["Hand Weapon","Leather Jack","Uniform"]}]},{"class":"Courtiers","name":"Advisor","species":["Dwarf","Halfling","High Elf","Human","Wood Elf"],"levels":[{"level":1,"title":"Aide","status":"Silver 2","skills":["Bribery","Consume Alcohol","Endurance","Gossip","Haggle","Language (Classical)","Lore (Politics)","Perception"],"talents":["Beneath Notice","Etiquette (Any)","Gregarious","Read/Write"],"trappings":["Writing Kit"]}]},{"class":"Courtiers","name":"Artist","species":["Dwarf","Halfling","High Elf","Human","Wood Elf"],"levels":[{"level":1,"title":"Apprentice Artist","status":"Silver 1","skills":["Art (Any)","Cool","Consume Alcohol","Evaluate","Endurance","Gossip","Perception","Stealth (Urban)"],"talents":["Artistic","Sharp","Strong Back","Tenacious"],"trappings":["Brush or Chisel or Quill Pen"]}]},{"class":"Courtiers","name":"Duellist","species":["Dwarf","High Elf","Human"],"levels":[{"level":1,"title":"Fencer","status":"Silver 3","skills":["Athletics","Dodge","Endurance","Heal","Intuition","Language (Classical)","Melee (Any)","Perception"],"talents":["Beat Blade","Distract","Feint","Step Aside"],"trappings":["Hand Weapon or Rapier","Bandages"]}]},{"class":"Courtiers","name":"Envoy","species":["Dwarf","Halfling","High Elf","Human","Wood Elf"],"levels":[{"level":1,"title":"Herald","status":"Silver 2","skills":["Athletics","Charm","Drive","Dodge","Endurance","Intuition","Ride (Horse)","Row"],"talents":["Blather","Etiquette (Nobles)","Read/Write","Suave"],"trappings":["Leather Jack","Livery","Scroll Case"]}]},{"class":"Courtiers","name":"Noble","species":["Dwarf","High Elf","Human","Wood Elf"],"levels":[{"level":1,"title":"Scion","status":"Gold 1","skills":["Bribery","Consume Alcohol","Gamble","Intimidate","Leadership","Lore (Heraldry)","Melee (Fencing)","Play (Any)"],"talents":["Etiquette (Nobles)","Luck","Noble Blood","Read/Write"],"trappings":["Courtly Garb","Mirror","Jewellery (3d10 GC)","Personal Servant"]}]},{"class":"Courtiers","name":"Servant","species":["Dwarf","Halfling","Human"],"levels":[{"level":1,"title":"Menial","status":"Silver 1","skills":["Athletics","Climb","Drive","Dodge","Endurance","Intuition","Perception","Stealth (Any)"],"talents":["Beneath Notice","Strong Back","Strong-minded","Sturdy"],"trappings":["Floor Brush"]}]},{"class":"Courtiers","name":"Spy","species":["Dwarf","Halfling","High Elf","Human","Wood Elf"],"levels":[{"level":1,"title":"Informer","status":"Brass 3","skills":["Bribery","Charm","Cool","Gamble","Gossip","Haggle","Perception","Stealth (Any)"],"talents":["Blather","Carouser","Gregarious","Shadow"],"trappings":["Charcoal Stick","Hooded Cloak","2 Sets of Clothing"]}]},{"class":"Courtiers","name":"Warden","species":["Dwarf","Halfling","High Elf","Human"],"levels":[{"level":1,"title":"Custodian","status":"Silver 1","skills":["Athletics","Charm Animal","Consume Alcohol","Cool","Endurance","Intuition","Lore (Local)","Perception"],"talents":["Menacing","Night Vision","Sharp","Strike to Stun"],"trappings":["Keys","Lantern","Lamp Oil","Livery"]}]},{"class":"Peasants","name":"Bailiff","species":["Dwarf","Halfling","Human"],"levels":[{"level":1,"title":"Tax Collector","status":"Silver 1","skills":["Cool","Dodge","Endurance","Gossip","Haggle","Intimidate","Melee (Basic)","Perception"],"talents":["Embezzle","Numismatics","Strong Back","Tenacious"],"trappings":["Hand Weapon","Small Lock Box"]}]},{"class":"Peasants","name":"Hedge Witch","species":["Human"],"levels":[{"level":1,"title":"Hedge Apprentice","status":"Brass 1","skills":["Channelling","Endurance","Intuition","Language (Magick)","Lore (Folklore)","Lore (Herbs)","Outdoor Survival","Perception"],"talents":["Fast Hands","Petty Magic","Rover","Strider (Woodlands)"],"trappings":["1d10 Lucky Charms","Quarterstaff","Backpack"]}]},{"class":"Peasants","name":"Herbalist","species":["Halfling","High Elf","Human","Wood Elf"],"levels":[{"level":1,"title":"Herb Gatherer","status":"Brass 2","skills":["Charm Animal","Climb","Endurance","Lore (Herbs)","Outdoor Survival","Perception","Swim","Trade (Herbalist)"],"talents":["Acute Sense (Taste)","Orientation","Rover","Strider (Any)"],"trappings":["Boots","Cloak","Assortment of Herbs"]}]},{"class":"Peasants","name":"Hunter","species":["Dwarf","Halfling","High Elf","Human","Wood Elf"],"levels":[{"level":1,"title":"Trapper","status":"Brass 2","skills":["Charm Animal","Climb","Endurance","Lore (Beasts)","Outdoor Survival","Perception","Ranged (Sling)","Set Trap"],"talents":["Hardy","Rover","Strider (Any)","Trapper"],"trappings":["Animal Traps","Hand Weapon","Sling with Stone Bullets","Boots and Cloak"]}]},{"class":"Peasants","name":"Miner","species":["Dwarf","Halfling","Human"],"levels":[{"level":1,"title":"Prospector","status":"Brass 2","skills":["Cool","Endurance","Intuition","Lore (Local)","Melee (Two-handed)","Outdoor Survival","Perception","Swim"],"talents":["Rover","Strider (Rocky)","Sturdy","Tenacious"],"trappings":["Charcoal Stick","Crude Map","Pan","Spade"]}]},{"class":"Peasants","name":"Mystic","species":["Human","Wood Elf"],"levels":[{"level":1,"title":"Fortune Teller","status":"Brass 1","skills":["Charm","Entertain (Fortune Telling)","Dodge","Gossip","Haggle","Intuition","Perception","Sleight of Hand"],"talents":["Attractive","Luck","Second Sight","Suave"],"trappings":["Deck of Cards or Dice","Cheap Jewellery"]}]},{"class":"Peasants","name":"Scout","species":["Dwarf","Halfling","High Elf","Human","Wood Elf"],"levels":[{"level":1,"title":"Guide","status":"Brass 3","skills":["Charm Animal","Climb","Endurance","Gossip","Lore (Local)","Melee (Basic)","Outdoor Survival","Perception"],"talents":["Orientation","Rover","Sharp","Strider (Any)"],"trappings":["Hand Weapon","Leather Jack","Boots and Cloak","Rope"]}]},{"class":"Peasants","name":"Villager","species":["Dwarf","Halfling","Human"],"levels":[{"level":1,"title":"Peasant","status":"Brass 2","skills":["Animal Care","Athletics","Consume Alcohol","Endurance","Gossip","Melee (Brawling)","Lore (Local)","Outdoor Survival"],"talents":["Rover","Strong Back","Strong-minded","Stone Soup"],"trappings":["None"]}]},{"class":"Rangers","name":"Bounty Hunter","species":["Dwarf","Halfling","High Elf","Human","Wood Elf"],"levels":[{"level":1,"title":"Thief-taker","status":"Silver 1","skills":["Bribery","Charm","Gossip","Haggle","Intuition","Melee (Basic)","Outdoor Survival","Perception"],"talents":["Break and Enter","Shadow","Strike to Stun","Suave"],"trappings":["Hand Weapon","Leather Jerkin","Rope"]}]},{"class":"Rangers","name":"Coachman","species":["Dwarf","Halfling","Human"],"levels":[{"level":1,"title":"Postilion","status":"Silver 1","skills":["Animal Care","Charm Animal","Climb","Drive","Endurance","Perception","Ranged (Entangling)","Ride (Horse)"],"talents":["Animal Affinity","Seasoned Traveller","Trick-Riding","Tenacious"],"trappings":["Warm Coat and Gloves","Whip"]}]},{"class":"Rangers","name":"Entertainer","species":["Dwarf","Halfling","High Elf","Human","Wood Elf"],"levels":[{"level":1,"title":"Busker","status":"Brass 3","skills":["Athletics","Charm","Entertain (Any)","Gossip","Haggle","Perform (Any)","Play (Any)","Sleight of Hand"],"talents":["Attractive","Mimic","Public-Speaking","Suave"],"trappings":["Bowl","Instrument"]}]},{"class":"Rangers","name":"Flagellant","species":["Human"],"levels":[{"level":1,"title":"Zealot","status":"Brass 0","skills":["Dodge","Endurance","Heal","Intimidate","Intuition","Lore (Sigmar)","Melee (Flail)","Outdoor Survival"],"talents":["Berserk Charge","Frenzy","Read/Write","Stone Soup"],"trappings":["Flail","Tattered Robes"]}]},{"class":"Rangers","name":"Messenger","species":["Dwarf","Halfling","High Elf","Human","Wood Elf"],"levels":[{"level":1,"title":"Runner","status":"Brass 3","skills":["Athletics","Climb","Dodge","Endurance","Gossip","Navigation","Perception","Melee (Brawling)"],"talents":["Flee!","Fleet Footed","Sprinter","Step Aside"],"trappings":["Scroll Case"]}]},{"class":"Rangers","name":"Pedlar","species":["Dwarf","Halfling","Human"],"levels":[{"level":1,"title":"Vagabond","status":"Brass 1","skills":["Charm","Endurance","Entertain (Storytelling)","Gossip","Haggle","Intuition","Outdoor Survival","Stealth (Rural or Urban)"],"talents":["Fisherman","Flee!","Rover","Tinker"],"trappings":["Backpack","Bedroll","Goods worth 2d10 Brass","Tent"]}]},{"class":"Rangers","name":"Road Warden","species":["Halfling","Human"],"levels":[{"level":1,"title":"Toll Keeper","status":"Brass 5","skills":["Bribery","Consume Alcohol","Gamble","Gossip","Haggle","Melee (Basic)","Perception","Ranged (Crossbow)"],"talents":["Coolheaded","Embezzle","Marksman","Numismatics"],"trappings":["Crossbow with 10 Bolts","Leather Jack"]}]},{"class":"Rangers","name":"Witch Hunter","species":["Human"],"levels":[{"level":1,"title":"Interrogator","status":"Silver 1","skills":["Charm","Consume Alcohol","Heal","Intimidate","Intuition","Lore (Torture)","Melee (Brawling)","Perception"],"talents":["Coolheaded","Menacing","Read/Write","Resolute"],"trappings":["Hand Weapon","Instruments of Torture"]}]},{"class":"Riverfolk","name":"Boatman","species":["Dwarf","Halfling","High Elf","Human"],"levels":[{"level":1,"title":"Boat-hand","status":"Silver 1","skills":["Consume Alcohol","Dodge","Endurance","Gossip","Melee (Brawling)","Row","Sail","Swim"],"talents":["Dirty Fighting","Fisherman","Strong Back","Strong Swimmer"],"trappings":["Hand Weapon (Boat Hook)","Leather Jack","Pole"]}]},{"class":"Riverfolk","name":"Huffer","species":["Dwarf","Halfling","Human"],"levels":[{"level":1,"title":"Riverguide","status":"Brass 4","skills":["Consume Alcohol","Gossip","Intuition","Lore (Local)","Lore (Riverways)","Perception","Row","Swim"],"talents":["Fisherman","Night Vision","Orientation","Waterman"],"trappings":["Hand Weapon (Boat Hook)","Storm Lantern and Oil"]}]},{"class":"Riverfolk","name":"Riverwarden","species":["Halfling","Human"],"levels":[{"level":1,"title":"River Recruit","status":"Silver 1","skills":["Athletics","Dodge","Endurance","Melee (Basic)","Perception","Row","Sail","Swim"],"talents":["Strong Swimmer","Strong Back","Very Strong","Waterman"],"trappings":["Hand Weapon (Sword)","Leather Jack","Uniform"]}]},{"class":"Riverfolk","name":"Riverwoman","species":["Dwarf","Halfling","Human"],"levels":[{"level":1,"title":"Greenfish","status":"Brass 2","skills":["Athletics","Consume Alcohol","Dodge","Endurance","Gossip","Outdoor Survival","Row","Swim"],"talents":["Fisherman","Gregarious","Strider (Marshes)","Strong Swimmer"],"trappings":["Bucket","Fishing Rod and Bait","Leather Leggings"]}]},{"class":"Riverfolk","name":"Seaman","species":["Dwarf","Halfling","High Elf","Human"],"levels":[{"level":1,"title":"Landsman","status":"Silver 1","skills":["Climb","Consume Alcohol","Gamble","Gossip","Row","Melee (Brawling)","Sail","Swim"],"talents":["Fisherman","Strider (Coastal)","Strong Back","Strong Swimmer"],"trappings":["Bucket","Brush","Mop"]}]},{"class":"Riverfolk","name":"Smuggler","species":["Dwarf","Halfling","High Elf","Human"],"levels":[{"level":1,"title":"River Runner","status":"Brass 2","skills":["Athletics","Bribery","Cool","Consume Alcohol","Row","Sail","Stealth (Rural or Urban)","Swim"],"talents":["Criminal","Fisherman","Strider (Marshes)","Strong Back"],"trappings":["Large Sack","Mask or Scarves","Tinderbox","Storm Lantern and Oil"]}]},{"class":"Riverfolk","name":"Stevedore","species":["Dwarf","Halfling","Human"],"levels":[{"level":1,"title":"Dockhand","status":"Brass 3","skills":["Athletics","Climb","Consume Alcohol","Dodge","Endurance","Gossip","Melee (Basic)","Swim"],"talents":["Dirty Fighting","Strong Back","Sturdy","Very Strong"],"trappings":["Hand Weapon (Boat Hook)","Leather Gloves"]}]},{"class":"Riverfolk","name":"Wrecker","species":["Dwarf","Human","Wood Elf"],"levels":[{"level":1,"title":"Cargo Scavenger","status":"Brass 2","skills":["Climb","Consume Alcohol","Dodge","Endurance","Row","Melee (Basic)","Outdoor Survival","Swim"],"talents":["Break and Enter","Criminal","Fisherman","Strong Back"],"trappings":["Crowbar","Large Sack","Leather Gloves"]}]},{"class":"Rogues","name":"Bawd","species":["Halfling","High Elf","Human"],"levels":[{"level":1,"title":"Hustler","status":"Brass 1","skills":["Bribery","Charm","Consume Alcohol","Entertain (Any)","Gamble","Gossip","Haggle","Intimidate"],"talents":["Attractive","Alley Cat","Blather","Gregarious"],"trappings":["Flask of Spirits"]}]},{"class":"Rogues","name":"Charlatan","species":["Halfling","High Elf","Human"],"levels":[{"level":1,"title":"Swindler","status":"Brass 3","skills":["Bribery","Consume Alcohol","Charm","Entertain (Storytelling)","Gamble","Gossip","Haggle","Sleight of Hand"],"talents":["Cardsharp","Diceman","Etiquette (Any)","Luck"],"trappings":["Backpack","2 Sets of Clothing","Deck of Cards","Dice"]}]},{"class":"Rogues","name":"Fence","species":["Dwarf","Halfling","Human"],"levels":[{"level":1,"title":"Broker","status":"Silver 1","skills":["Charm","Consume Alcohol","Dodge","Evaluate","Gamble","Gossip","Haggle","Melee (Basic)"],"talents":["Alley Cat","Cardsharp","Dealmaker","Gregarious"],"trappings":["Hand Weapon","Stolen Goods worth 3d10 Shillings"]}]},{"class":"Rogues","name":"Grave Robber","species":["Halfling","Human"],"levels":[{"level":1,"title":"Body Snatcher","status":"Brass 2","skills":["Climb","Cool","Dodge","Endurance","Gossip","Intuition","Perception","Stealth (Any)"],"talents":["Alley Cat","Criminal","Flee!","Strong Back"],"trappings":["Crowbar","Handcart","Hooded Cloak","Tarpaulin"]}]},{"class":"Rogues","name":"Outlaw","species":["Dwarf","Halfling","High Elf","Human","Wood Elf"],"levels":[{"level":1,"title":"Brigand","status":"Brass 1","skills":["Athletics","Consume Alcohol","Cool","Endurance","Gamble","Intimidate","Melee (Basic)","Outdoor Survival"],"talents":["Combat Aware","Criminal","Rover","Flee!"],"trappings":["Bedroll","Hand Weapon","Leather Jerkin","Tinderbox"]}]},{"class":"Rogues","name":"Racketeer","species":["Dwarf","Halfling","Human"],"levels":[{"level":1,"title":"Thug","status":"Brass 3","skills":["Consume Alcohol","Cool","Dodge","Endurance","Intimidate","Lore (Local)","Melee (Brawling)","Stealth (Urban)"],"talents":["Criminal","Etiquette (Criminals)","Menacing","Strike Mighty Blow"],"trappings":["Knuckledusters","Leather Jack"]}]},{"class":"Rogues","name":"Thief","species":["Dwarf","Halfling","Human"],"levels":[{"level":1,"title":"Prowler","status":"Brass 1","skills":["Athletics","Climb","Cool","Dodge","Endurance","Intuition","Perception","Stealth (Urban)"],"talents":["Alley Cat","Criminal","Flee!","Strike to Stun"],"trappings":["Crowbar","Leather Jerkin","Sack"]}]},{"class":"Rogues","name":"Witch","species":["Human"],"levels":[{"level":1,"title":"Hexer","status":"Brass 1","skills":["Channelling","Cool","Endurance","Gossip","Intimidate","Language (Magick)","Sleight of Hand","Stealth (Rural)"],"talents":["Criminal","Instinctive Diction","Menacing","Petty Magic"],"trappings":["Candles","Chalk","Doll","Pins"]}]},{"class":"Warriors","name":"Cavalryman","species":["High Elf","Human","Wood Elf"],"levels":[{"level":1,"title":"Horseman","status":"Silver 2","skills":["Animal Care","Charm Animal","Endurance","Language (Battle)","Melee (Basic)","Outdoor Survival","Perception","Ride (Horse)"],"talents":["Combat Aware","Crack the Whip","Lightning Reflexes","Roughrider"],"trappings":["Leather Jack","Riding Horse with Saddle and Tack"]}]},{"class":"Warriors","name":"Guard","species":["Dwarf","Halfling","High Elf","Human","Wood Elf"],"levels":[{"level":1,"title":"Sentry","status":"Silver 1","skills":["Consume Alcohol","Endurance","Entertain (Storytelling)","Gamble","Gossip","Intuition","Melee (Basic)","Perception"],"talents":["Diceman","Etiquette (Servants)","Strike to Stun","Tenacious"],"trappings":["Buckler","Leather Jerkin","Storm Lantern with Oil"]}]},{"class":"Warriors","name":"Knight","species":["High Elf","Human","Wood Elf"],"levels":[{"level":1,"title":"Squire","status":"Silver 3","skills":["Athletics","Animal Care","Charm Animal","Heal","Lore (Heraldry)","Melee (Cavalry)","Ride (Horse)","Trade (Farrier)"],"talents":["Etiquette (Any)","Roughrider","Sturdy","Warrior Born"],"trappings":["Leather Jack","Mail Shirt","Riding Horse with Saddle and Tack","Shield"]}]},{"class":"Warriors","name":"Pit Fighter","species":["Dwarf","Halfling","High Elf","Human","Wood Elf"],"levels":[{"level":1,"title":"Pugilist","status":"Brass 4","skills":["Athletics","Cool","Dodge","Endurance","Gamble","Intimidate","Melee (Any)","Melee (Brawling)"],"talents":["Dirty Fighting","In-fighter","Iron Jaw","Reversal"],"trappings":["Bandages","Knuckledusters","Leather Jack"]}]},{"class":"Warriors","name":"Protagonist","species":["Dwarf","High Elf","Human"],"levels":[{"level":1,"title":"Braggart","status":"Brass 2","skills":["Athletics","Dodge","Endurance","Entertain (Taunt)","Gossip","Haggle","Intimidate","Melee (Any)"],"talents":["In-fighter","Dirty Fighting","Menacing","Warrior Born"],"trappings":["Hood or Mask","Knuckledusters","Leather Jack"]}]},{"class":"Warriors","name":"Slayer","species":["Dwarf"],"levels":[{"level":1,"title":"Troll Slayer","status":"Brass 2","skills":["Consume Alcohol","Cool","Dodge","Endurance","Gamble","Heal","Lore (Trolls)","Melee (Basic)"],"talents":["Dual Wielder","Fearless (Everything)","Frenzy","Slayer"],"trappings":["Axe","Flask of Spirits","Shame","Tattoos"]}]},{"class":"Warriors","name":"Soldier","species":["Dwarf","Halfling","High Elf","Human","Wood Elf"],"levels":[{"level":1,"title":"Recruit","status":"Silver 1","skills":["Athletics","Climb","Cool","Dodge","Endurance","Language (Battle)","Melee (Basic)","Play (Drum or Fife)"],"talents":["Diceman","Marksman","Strong Back","Warrior Born"],"trappings":["Dagger","Leather Breastplate","Uniform"]}]},{"class":"Warriors","name":"Warrior Priest","species":["Human"],"levels":[{"level":1,"title":"Novitiate","status":"Brass 2","skills":["Cool","Dodge","Endurance","Heal","Leadership","Lore (Theology)","Melee (Any)","Pray"],"talents":["Bless (Any)","Etiquette (Cultists)","Read/Write","Strong-minded"],"trappings":["Book (Religion)","Leather Jerkin","Religious Symbol","Robes","Weapon (Any Melee)"]}]}];
+
+const SPECIES = {
+  Human:{icon:'👤',desc:'Most numerous of all peoples — adaptable, ambitious, and short-lived. Masters of no single craft, but capable of anything.',
+    lore:'Born of the Reikland, Humans fill every role in the Old World. Blessed with remarkable potential, cursed with the shortest lifespan of all civilised races.',
+    stats:{WS:[2,10,20],BS:[2,10,20],S:[2,10,20],T:[2,10,20],I:[2,10,20],Ag:[2,10,20],Dex:[2,10,20],Int:[2,10,20],WP:[2,10,20],Fel:[2,10,20]},
+    move:4,fate:2,resilience:0,extra:3,wounds:'SB+(2\xd7TB)+WPB',
+    skills:['Animal Care','Charm','Cool','Evaluate','Gossip','Haggle','Language (Bretonnian)','Language (Wastelander)','Leadership','Lore (Reikland)','Melee (Basic)','Ranged (Bow)'],
+    autoTalents:['Doomed'],choiceTalents:[['Savvy','Suave']],randomCount:3,
+    hair:['Brown','Dark Brown','Black','Red','Blonde','Sandy','Chestnut','Mousy','Grey','Auburn'],
+    eyes:['Brown','Blue','Green','Grey','Hazel','Amber','Dark Brown'],
+    ageBase:15,ageDice:1,ageSides:10,heightBase:57,heightDice:2,heightSides:10},
+  Dwarf:{icon:'⛏',desc:'Ancient, stubborn, and long-lived. Masters of craft and war. Immune to magic\'s lure — and its corruption.',
+    lore:'Dawi — the Elder Folk of the mountains. Renowned for craftsmanship and legendary memories for grudges. They cannot cast spells, but Chaos cannot twist them either.',
+    stats:{WS:[2,10,30],BS:[2,10,20],S:[2,10,20],T:[2,10,30],I:[2,10,20],Ag:[2,10,10],Dex:[2,10,30],Int:[2,10,20],WP:[2,10,40],Fel:[2,10,10]},
+    move:3,fate:0,resilience:0,extra:2,wounds:'SB+(2\xd7TB)+WPB',
+    skills:['Consume Alcohol','Cool','Endurance','Entertain (Storytelling)','Evaluate','Intimidate','Language (Khazalid)','Lore (Dwarfs)','Lore (Geology)','Lore (Metallurgy)','Melee (Basic)','Trade (Any)'],
+    autoTalents:['Magic Resistance','Night Vision','Sturdy'],choiceTalents:[['Read/Write','Relentless'],['Resolute','Strong-minded']],randomCount:0,
+    hair:['Brown','Black','Red','Auburn','Iron Grey','White','Russet','Copper'],
+    eyes:['Brown','Dark Brown','Black','Grey','Hazel','Deep Blue'],
+    ageBase:15,ageDice:10,ageSides:10,heightBase:51,heightDice:1,heightSides:10},
+  Halfling:{icon:'🌿',desc:'Short, merry, and perpetually underestimated. Quick of hand and light of foot, with an uncanny resistance to Chaos.',
+    lore:'Self-governing people of the Mootland. Halflings navigate the world with cheerful pragmatism, rarely seeking glory but often finding themselves in the centre of it.',
+    stats:{WS:[2,10,10],BS:[2,10,30],S:[2,10,10],T:[2,10,20],I:[2,10,20],Ag:[2,10,20],Dex:[2,10,30],Int:[2,10,20],WP:[2,10,30],Fel:[2,10,30]},
+    move:3,fate:0,resilience:2,extra:3,wounds:'(2\xd7TB)+WPB',
+    skills:['Charm','Consume Alcohol','Dodge','Gamble','Haggle','Intuition','Language (Mootish)','Lore (Reikland)','Perception','Sleight of Hand','Stealth (Any)','Trade (Cook)'],
+    autoTalents:['Acute Sense (Taste)','Night Vision','Resistance (Chaos)','Small'],choiceTalents:[],randomCount:2,
+    hair:['Brown','Black','Straw','Sandy','Red','Tawny','Mousy','Chestnut'],
+    eyes:['Brown','Green','Blue','Hazel','Amber','Grey-green'],
+    ageBase:15,ageDice:5,ageSides:10,heightBase:37,heightDice:1,heightSides:10},
+  'High Elf':{icon:'✨',desc:'Tall, slender, impossibly graceful. Ancient scholars and warriors from the isle of Ulthuan. Powerful in magic and formidable in battle.',
+    lore:'The Asur view younger races with a mixture of pity and veiled disdain. Their skill with blade and spell is beyond question — their arrogance equally so.',
+    stats:{WS:[2,10,30],BS:[2,10,30],S:[2,10,20],T:[2,10,20],I:[2,10,40],Ag:[2,10,30],Dex:[2,10,30],Int:[2,10,30],WP:[2,10,30],Fel:[2,10,20]},
+    move:5,fate:0,resilience:2,extra:2,wounds:'SB+(2\xd7TB)+WPB',
+    skills:['Cool','Entertain (Sing)','Evaluate','Language (Eltharin)','Leadership','Melee (Basic)','Navigation','Perception','Play (Any)','Ranged (Bow)','Sail','Swim'],
+    autoTalents:['Acute Sense (Sight)','Night Vision','Read/Write'],choiceTalents:[['Coolheaded','Savvy'],['Second Sight','Sixth Sense']],randomCount:0,
+    hair:['Silver-white','Pale Gold','Honey Gold','Copper','Chestnut','Raven Black'],
+    eyes:['Silver','Violet','Azure','Amber','Pale Blue','Sea Green'],
+    ageBase:30,ageDice:10,ageSides:10,heightBase:71,heightDice:1,heightSides:10},
+  'Wood Elf':{icon:'🌲',desc:'Children of the forest — patient, deadly, and bound to nature. Masters of the bow and of stealth, moving like shadows among the trees.',
+    lore:'From Athel Loren or Laurelorn, Wood Elves have grown apart from their High Elf kin over three thousand years of isolation. Their ways are strange and their patience legendary.',
+    stats:{WS:[2,10,30],BS:[2,10,30],S:[2,10,20],T:[2,10,20],I:[2,10,40],Ag:[2,10,30],Dex:[2,10,30],Int:[2,10,30],WP:[2,10,30],Fel:[2,10,20]},
+    move:5,fate:0,resilience:2,extra:2,wounds:'SB+(2\xd7TB)+WPB',
+    skills:['Athletics','Climb','Endurance','Entertain (Sing)','Intimidate','Language (Eltharin)','Melee (Basic)','Outdoor Survival','Perception','Ranged (Bow)','Stealth (Rural)','Track'],
+    autoTalents:['Acute Sense (Sight)','Night Vision','Rover'],choiceTalents:[['Hardy','Second Sight'],['Read/Write','Very Resilient']],randomCount:0,
+    hair:['Auburn','Chestnut','Dark Brown','Golden','Russet','Black'],
+    eyes:['Green','Silver','Amber','Brown','Gold','Pale Grey'],
+    ageBase:30,ageDice:10,ageSides:10,heightBase:71,heightDice:1,heightSides:10}
+};
+
+const ATTR_NAMES = {WS:'Weapon Skill',BS:'Ballistic Skill',S:'Strength',T:'Toughness',I:'Initiative',Ag:'Agility',Dex:'Dexterity',Int:'Intelligence',WP:'Willpower',Fel:'Fellowship'};
+const ATTR_KEYS = ['WS','BS','S','T','I','Ag','Dex','Int','WP','Fel'];
+const CLASSES = ['Academics','Burghers','Courtiers','Peasants','Rangers','Riverfolk','Rogues','Warriors'];
+const CLASS_TRAPPINGS = {
+  Academics:['Clothing','Dagger','Pouch','Sling Bag','Writing Kit','1d10 Parchment'],
+  Burghers:['Cloak','Clothing','Dagger','Hat','Pouch','Sling Bag (Lunch)'],
+  Courtiers:['Dagger','Fine Clothing','Pouch (Tweezers, Ear Pick, Comb)'],
+  Peasants:['Cloak','Clothing','Dagger','Pouch','Sling Bag (1 day Rations)'],
+  Rangers:['Cloak','Clothing','Dagger','Pouch','Backpack (Tinderbox, Blanket, 1 day Rations)'],
+  Riverfolk:['Cloak','Clothing','Dagger','Pouch','Sling Bag (Flask of Spirits)'],
+  Rogues:['Clothing','Dagger','Pouch','Sling Bag (2 Candles, 1d10 Matches, Hood or Mask)'],
+  Warriors:['Clothing','Hand Weapon','Dagger','Pouch']
+};
+const RANDOM_TALENTS = ['Alert','Attractive','Beneath Notice','Bold','Careful Strike','Cat-tongued','Carouser','Combat Aware','Coolheaded','Courageous','Craftsman (Any)','Defiant','Diceman','Dirty Fighting','Fast Hands','Fearless (Any)','Fleet Footed','Gregarious','Hard-headed','Hunter\'s Eye','Iron Will','Lightning Reflexes','Marksman','Menacing','Night Vision','Nimble Fingered','Orientation','Patient','Petty Magic','Pure Soul','Relentless','Resolute','Rover','Savvy','Sharp','Sprinter','Step Aside','Strong-minded','Sturdy','Suave','Sure Shot','Tenacious','Tinker','Tough','True Grit','Unshakeable','Very Resilient','Very Strong'];
+const DOOMS = ['You will meet your end at the hands of someone you trust.','Death shall find you in the shadow of a great tower.','Your final breath will be drawn beneath an ashen sky.','You will die alone, far from those you love.','The fire that saves your companions will consume you.','A child\'s laughter will herald your doom.','You shall fall at the banks of a mighty river.','Your greatest triumph shall be your last act.','The very thing you seek most will be your undoing.','Betrayal shall find you in your moment of greatest need.','You will fall in service to a cause greater than yourself.','Death comes for you wearing the face of mercy.','A blow meant for another will find its mark in you.','You will die in a place of terrible beauty.','The God you deny will be the one who claims you.','Your final foe will bear your own mark upon them.','The darkness within will consume you in the end.','You shall be cut down at the very height of your power.','The road you chose long ago leads nowhere but to ruin.','In the moment of your greatest victory, doom shall find you.'];
+const STAR_SIGNS = ['Gnuthus the Ox','Mummit\'s Fool','Dragomas the Drake','Gilleman the Sage','Wymund the Anchorite','Donat the Auditor','Schleif the Rat','The Two Bullocks','Vobist the Faint','Rhya\'s Cauldron','Grungni\'s Forge','The Broken Cart','Mannslieb Full','Verena\'s Scales','The Limner\'s Line','The Piper','The Drummer','The Gaoler\'s Key','The Firefly','The Bonesaw'];
+const MARKS = ['A scar running from ear to jaw','A missing finger on the right hand','A birthmark shaped like a skull','Prematurely white hair','A pronounced limp from an old wound','A distinctive tattoo covering the left arm','A burn scar on one side of the face','Eyes of two different colours','A brand mark on the wrist','Always wears a particular keepsake','Unusually tall or short for their species','A habit of talking to themselves when troubled'];
+const PERSONALITIES = ['Brave','Cautious','Cynical','Devout','Forthright','Generous','Honest','Humble','Humorous','Inquisitive','Loyal','Merciful','Mercurial','Optimistic','Patient','Pragmatic','Quick-tempered','Reckless','Scholarly','Secretive','Sensitive','Stubborn','Suspicious','Tenacious','Worldly'];
+const NAMES = {
+  Human:{M:['Wilhelm','Karl','Heinrich','Friedrich','Johann','Dieter','Ludwig','Klaus','Ernst','Otto','Werner','Konrad','Helmut','Gerhard','Rudolf','Hans','Georg','Stefan','Albrecht','Maximilian'],
+         F:['Helga','Ingrid','Agatha','Hildegard','Gertrude','Elsa','Maria','Hanna','Katharina','Lieselotte','Brunhilde','Sieglinde','Mathilde','Ulrike','Rosamund','Greta','Ilse','Bertha'],
+         S:['M\xfcller','Schmidt','Fischer','Weber','Wagner','Becker','Krause','Braun','Richter','Wolf','Sch\xe4fer','Koch','Schneider','Hoffmann','Klein','Zimmermann']},
+  Dwarf:{M:['Balin','Barak','Brun','Durgin','Gimli','Grim','Hammar','Kili','Mordin','Storin','Thorek','Ulrik','Borri','Dwalin','Fili','Gloin','Nori'],
+         F:['Helga','Hilda','Kilda','Nilda','Rilda','Silda','Tilda','Berta','Gerda','Marta','Thilda'],
+         S:['Ironforge','Stonefist','Copperhelm','Goldfist','Grimhammer','Blackstone','Ironback','Steelbeard']},
+  Halfling:{M:['Bilbo','Curly','Desmond','Edwin','Fardo','Harold','Jack','Ned','Sam','Tom','Will','Bungo','Otho','Olo','Peregrin','Tobold'],
+            F:['Daisy','Esmeralda','Florie','Merry','Rose','Pearl','Ruby','Lavender','Primrose','Lily','Petunia','Goldie'],
+            S:['Goodbarrel','Proudfoot','Longbottom','Sandybanks','Sweetbriar','Appletree','Greenhill','Thistledown']},
+  'High Elf':{M:['Aergad','Alaithel','Belthair','Celebril','Daelith','Eltharion','Finubar','Korhil','Tyrion','Teclis'],
+              F:['Alarielle','Aleriel','Ariel','Caradriel','Eladriel','Idriel','Naestra','Naerilana'],S:['']},
+  'Wood Elf':{M:['Aelrion','Asarnil','Belarial','Celebrial','Daith','Finuval','Drornil'],
+              F:['Arelieal','Caradriel','Drycha','Eliri','Silriel','Naestra'],S:['']}
+};
+
+// ===================== STATE =====================
+const char = {
+  xp:0,species:null,career:null,careerClass:null,
+  careerMethod:'roll1',attrMethod:'roll',attrRolls:[],
+  attrs:{WS:0,BS:0,S:0,T:0,I:0,Ag:0,Dex:0,Int:0,WP:0,Fel:0},
+  wounds:0,fate:0,fortune:0,resilience:0,resolve:0,extraPts:0,move:0,
+  speciesSkills5:[],speciesSkills3:[],careerSkills:{},
+  autoTalents:[],chosenTalents:[],randomTalents:[],careerTalent:null,
+  classTrappings:[],careerTrappings:[],personalItems:'',
+  wealth:{gc:0,ss:0,bp:0},
+  details:{name:'',gender:'Male',age:0,height:'',eyes:'',hair:'',marks:'',starSign:''},
+  backstory:{short:'',long:'',motivation:'',story:'',fear:'',sacrifice:'',doom:'',personality:[]}
+};
+
+let currentStep = 0;
+let poolValues = [];
+let selectedPoolSlot = null;
+let careerRollMethod = 'roll1';
+
+// ===================== UTILS =====================
+function d(sides){return Math.floor(Math.random()*sides)+1}
+function roll2d10(){return d(10)+d(10)}
+function bonus(v){return Math.floor(v/10)}
+
+function animateDie(el, final, cb){
+  el.classList.remove('landed');
+  el.classList.add('rolling');
+  let count=0,interval=setInterval(()=>{
+    el.textContent=d(10);
+    count++;
+    if(count>15){clearInterval(interval);el.textContent=final;el.classList.remove('rolling');el.classList.add('landed');if(cb)cb();}
+  },50);
+}
+
+function animateD100(tensEl, unitsEl, finalRoll, cb){
+  const finalTens = finalRoll===100 ? 0 : Math.floor(finalRoll/10);
+  const finalUnits = finalRoll % 10;
+  [tensEl,unitsEl].forEach(el=>{el.classList.remove('landed');el.classList.add('rolling');});
+  let count=0, done=0;
+  const finish=()=>{if(++done===2&&cb)cb();};
+  const interval=setInterval(()=>{
+    tensEl.textContent=Math.floor(Math.random()*10);
+    unitsEl.textContent=Math.floor(Math.random()*10);
+    count++;
+    if(count>15){
+      clearInterval(interval);
+      tensEl.textContent=finalTens; tensEl.classList.remove('rolling'); tensEl.classList.add('landed'); finish();
+      unitsEl.textContent=finalUnits; unitsEl.classList.remove('rolling'); unitsEl.classList.add('landed'); finish();
+    }
+  },50);
+}
+
+function showNotif(msg,dur=2000){
+  const n=document.getElementById('notif');
+  n.textContent=msg;n.classList.add('show');
+  setTimeout(()=>n.classList.remove('show'),dur);
+}
+
+function updateXP(){
+  char.xp=0;
+  if(char.careerMethod==='roll1')char.xp+=50;
+  else if(char.careerMethod==='roll3')char.xp+=25;
+  if(char.speciesRolled)char.xp+=20;
+  if(char.attrMethod==='roll')char.xp+=50;
+  else if(char.attrMethod==='rearrange')char.xp+=25;
+  document.getElementById('xp-val').textContent=char.xp;
+}
+
+function goToStep(n){
+  if(n<1||n>9)return;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s'+n).classList.add('active');
+  currentStep=n;
+  updateProgress();
+  updateNav();
+  initScreen(n);
+}
+
+function updateProgress(){
+  for(let i=1;i<=9;i++){
+    const d=document.getElementById('sd'+i);
+    d.classList.remove('active','done');
+    if(i===currentStep)d.classList.add('active');
+    else if(i<currentStep)d.classList.add('done');
+  }
+  document.getElementById('nav-step-label').textContent=
+    ['','Species','Career','Attributes','Skills','Talents','Trappings','Details','Backstory','Complete'][currentStep]||'';
+}
+
+function updateNav(){
+  document.getElementById('btn-back').style.visibility=currentStep>1?'visible':'hidden';
+  document.getElementById('btn-next').textContent=currentStep===9?'Finish':'Next \u2192';
+}
+
+function goBack(){if(currentStep>1)goToStep(currentStep-1)}
+function goNext(){
+  if(currentStep===9){showNotif('Character complete!');return;}
+  if(!validateStep(currentStep))return;
+  goToStep(currentStep+1);
+}
+
+function validateStep(n){
+  if(n===1&&!char.species){showNotif('Please choose a species');return false;}
+  if(n===2&&!char.career){showNotif('Please choose a career');return false;}
+  return true;
+}
+
+function startCreation(){
+  document.getElementById('s0').classList.remove('active');
+  document.getElementById('progress').style.display='flex';
+  document.getElementById('xp-display').style.display='block';
+  document.getElementById('nav').style.display='flex';
+  goToStep(1);
+}
+
+function startOver(){if(confirm('Start over? All progress will be lost.')){location.reload();}}
+
+function initScreen(n){
+  ({1:initSpecies,2:initCareer,3:initAttrs,4:initSkills,5:initTalents,6:initTrappings,7:initDetails,8:()=>{},9:initSheet})[n]?.();
+}
+
+
+// ===================== TOOLTIP DATA =====================
+const TOOLTIPS = {
+  // Characteristics (by key and full name)
+  WS:'Your accuracy in melee combat — the higher this is, the more often you land blows in close-quarters fighting.',
+  BS:'Your accuracy with ranged weapons — bows, crossbows, slings, firearms, and anything you throw.',
+  S:'Raw physical power — affects how hard you hit, how much you can carry, and how much damage your blows deal.',
+  T:'How tough your body is — absorbing damage, resisting disease, shrugging off poisons, and enduring hardship.',
+  I:'Reaction speed and awareness — determines when you act in combat and how quickly you spot danger.',
+  Ag:'Physical nimbleness — dodging attacks, acrobatics, sprinting, and any feat of swift coordinated movement.',
+  Dex:'Fine motor precision — picking locks, crafting delicate objects, playing instruments, and sleight of hand.',
+  Int:'Knowledge and reasoning — how much you know, how fast you learn, and how cleverly you apply information.',
+  WP:'Mental fortitude — resisting fear, horror, magical corruption, and keeping your nerve when all seems lost.',
+  Fel:'Charm and social grace — persuading, inspiring, deceiving, and connecting with other people.',
+  'Weapon Skill':'Your accuracy in melee combat — the higher this is, the more often you land blows in close-quarters fighting.',
+  'Ballistic Skill':'Your accuracy with ranged weapons — bows, crossbows, slings, firearms, and anything you throw.',
+  'Strength':'Raw physical power — affects how hard you hit, how much you can carry, and how much damage your blows deal.',
+  'Toughness':'How tough your body is — absorbing damage, resisting disease, shrugging off poisons, and enduring hardship.',
+  'Initiative':'Reaction speed and awareness — determines when you act in combat and how quickly you spot danger.',
+  'Agility':'Physical nimbleness — dodging attacks, acrobatics, sprinting, and any feat of swift coordinated movement.',
+  'Dexterity':'Fine motor precision — picking locks, crafting delicate objects, playing instruments, and sleight of hand.',
+  'Intelligence':'Knowledge and reasoning — how much you know, how fast you learn, and how cleverly you apply information.',
+  'Willpower':'Mental fortitude — resisting fear, horror, magical corruption, and keeping your nerve when all seems lost.',
+  'Fellowship':'Charm and social grace — persuading, inspiring, deceiving, and connecting with other people.',
+  // Derived stats
+  Wounds:'Your hit points. When Wounds reach zero, you start taking Critical Wounds — serious injuries that can maim or kill. Calculated from Strength, Toughness, and Willpower Bonuses.',
+  Move:'The number of yards you move per action. Most characters act twice per round, so your effective move is double this in practice.',
+  Fate:'Permanent resource spent to survive what should be fatal — tumbling off a cliff unharmed, a shot that somehow misses. Gone forever when spent.',
+  Fortune:'Refreshes to your Fate score each session. Spend Fortune for lucky breaks and rerolls, without permanently losing Fate.',
+  Resilience:'Permanent resource spent to resist corruption of the soul — exposure to Chaos, dark rituals, and unspeakable horrors.',
+  Resolve:'Refreshes to your Resilience score each session. Spend Resolve to push through fear, pain, and adverse conditions.',
+  // Skills
+  'Animal Care':'Tending and healing animals — keeping them healthy, treating injuries, and assessing their condition.',
+  'Animal Training':'Training a specific animal type to obey commands; the species must match your specialisation.',
+  'Art':'Creating works of visual art in a chosen medium — painting, sculpture, cartography, tattooing, and more.',
+  'Athletics':'Running, jumping, vaulting, and any feat of speed or athletic grace under pressure.',
+  'Bribery':'Judging whether someone is open to a bribe, and finding the right sum to make it happen.',
+  'Channelling':'Drawing the Winds of Magic into yourself to fuel spells. Each specialisation covers one magical Wind.',
+  'Charm':'Making people think well of you through personality, warmth, and social grace.',
+  'Charm Animal':'Calming, befriending, or commanding animals through patience and force of personality.',
+  'Climb':'Scaling vertical surfaces — walls, cliffs, masts, and anything with hand- and footholds.',
+  'Cool':'Keeping your head under stress — resisting fear, horror, and panic when things go badly wrong.',
+  'Consume Alcohol':'Drinking heavily without your mind clouding or your speech slurring. Dwarfs excel at this.',
+  'Dodge':'Ducking, diving, and sidling out of the way of attacks and hazards.',
+  'Drive':'Controlling a cart, coach, or wagon — particularly important when the horses are frightened.',
+  'Endurance':'Withstanding sustained physical hardship, pain, exposure, and exhaustion over time.',
+  'Entertain':'Performing for an audience — singing, acting, comedy, storytelling. Each type is a specialisation.',
+  'Evaluate':'Accurately assessing the value of items, artwork, coins, and rare goods. Also spots fakes.',
+  'Gamble':'Reading odds and outplaying opponents in games of chance and skill.',
+  'Gossip':'Picking up useful rumours and local information, and spreading stories of your own.',
+  'Haggle':'Negotiating better prices, more favourable terms, or advantageous deals.',
+  'Heal':'Treating injuries, staunching bleeding, and managing diseases. Critical for keeping the party alive.',
+  'Intimidate':'Coercing or frightening others into compliance through threat and imposing presence.',
+  'Intuition':'Getting a gut feeling about surroundings — sensing hidden motives, danger, or anything out of place.',
+  'Language':'Speaking and understanding languages beyond your own. Each specialisation is a different tongue.',
+  'Leadership':'Inspiring and directing groups of people — crucial when giving orders in a crisis.',
+  'Lore':'Deep specialist knowledge in a specific academic field. Each specialisation is a different subject.',
+  'Melee':'Fighting with weapons in close combat. The most tested skill in the Reikland.',
+  'Navigation':'Finding your bearings using stars, landmarks, and natural signs.',
+  'Outdoor Survival':'Finding food, water, shelter, and safe paths in the wilderness.',
+  'Perception':'Noticing things around you — hidden objects, furtive movements, whispered conversations.',
+  'Perform':'Physical performance arts — acrobatics, juggling, puppetry, mime, and dancing.',
+  'Pick Lock':'Opening locks without a key, using picks or improvised tools.',
+  'Play':'Playing a musical instrument with skill. Each specialisation is a different instrument.',
+  'Pray':'Appealing to a deity for blessings, miracles, and divine intervention.',
+  'Ranged':'Attacking at range — each specialisation covers a different type of weapon.',
+  'Research':'Systematically searching texts, records, and sources to find specific information.',
+  'Ride':'Controlling a mount in normal conditions and in combat. Each specialisation is an animal type.',
+  'Row':'Propelling a boat by oar, against currents and in difficult water.',
+  'Sail':'Managing a sailing vessel — sails, rigging, and navigation at sea or on large rivers.',
+  'Secret Signs':'Using coded marks and signals understood only by members of a specific group.',
+  'Set Trap':'Laying, baiting, and concealing traps for animals or humans.',
+  'Sleight of Hand':'Palming objects, picking pockets, and misdirecting attention from your hands.',
+  'Stealth':'Moving without being heard or seen — sneaking past guards and hiding in shadows.',
+  'Swim':'Moving through water without drowning, even in armour or strong currents.',
+  'Track':'Following the trail left by creatures and people through terrain.',
+  'Trade':'Practising a skilled trade or craft to professional standard. Each specialisation is a different trade.',
+  // Talents
+  'Doomed':'Every Human carries a prophecy of their death, revealed at character creation. The GM decides when and how it comes to pass.',
+  'Savvy':'You gain +5 advances in Intelligence for free — representing a naturally sharp and curious mind.',
+  'Suave':'You gain +5 advances in Fellowship for free — you have a natural ease with people.',
+  'Magic Resistance':'Add +10 per level to any test to resist magical effects. Dwarfs are naturally resistant to the Winds of Magic.',
+  'Night Vision':'You see clearly up to 20 yards in near-darkness, ignoring penalties for dim lighting conditions.',
+  'Read/Write':'You can read and write your native language. Literacy is far from universal in the Old World.',
+  'Relentless':'Once per round, if you fail a test, spend 1 Resolve to reroll it and keep the better result.',
+  'Resolute':'Your Willpower is +5. Each time you take this talent, your WP improves.',
+  'Strong-minded':'Your mental defences are formidable — add your Willpower Bonus to resist being unsettled or manipulated.',
+  'Sturdy':'Your carrying capacity increases significantly. You treat equipment with Enc 0 as weightless.',
+  'Acute Sense':'One of your senses is extraordinarily keen — add +10 to any test relying on it.',
+  'Resistance':'Reduce the difficulty of tests to resist a specific hazard by one step (e.g. disease, poison, Chaos).',
+  'Small':'You are unusually small — gain +20 to Stealth and become harder to hit with ranged weapons.',
+  'Coolheaded':'Your Willpower is +5, and you gain advantages in stressful social situations.',
+  'Second Sight':'You perceive the Winds of Magic, sensing magical auras and aethyric entities invisible to others.',
+  'Sixth Sense':'An uncanny early-warning system — you add +10 to Initiative tests to avoid being surprised.',
+  'Hardy':'Gain bonus Wounds equal to your Toughness Bonus, providing a buffer before proper injuries.',
+  'Very Resilient':'Your Toughness is +5, and Endurance tests are one step easier for you.',
+  'Rover':'You ignore movement penalties in natural difficult terrain — forests, marshland, and rocky ground.',
+  'Artistic':'Your creative works are of notably higher quality — add +1 SL to relevant Art and Trade tests.',
+  'Aethyric Attunement':'You are naturally attuned to the Winds of Magic, gaining bonus dice when Channelling spells.',
+  'Petty Magic':'You can cast Petty spells — minor magical cantrips that require no great power or training.',
+  'Bless':'You can call on your deity to bless a person or object, granting divine favour and minor protection.',
+  'Holy Visions':'You receive visions and guidance from your deity, providing warnings or cryptic insights.',
+  'Concoct':'You can create potions, medicines, and alchemical preparations using Apothecary tests.',
+  'Craftsman':'You produce consistently high-quality work in your trade and may take on apprentices.',
+  'Etiquette':'You know the social customs and unspoken rules of a specific group, avoiding offence and gaining trust.',
+  'Gunner':'You handle blackpowder weapons with ease — reduce reload times and misfire consequences.',
+  'Tinker':'You improvise repairs to mechanisms, weapons, and tools with whatever happens to be at hand.',
+  'Blather':'When you need to stall or confuse, you talk persuasive nonsense — gaining time and distracting listeners.',
+  'Speedreader':'You read at remarkable speed, halving the time required for Research tests involving written texts.',
+  'Stone Soup':'You can create a surprisingly nourishing meal from almost nothing — scraps, forage, and found odds and ends.',
+  'Panhandle':'You earn Fellowship Bonus × SL brass pennies per hour of begging from passers-by.',
+  'Field Dressing':'You apply emergency first aid more effectively, making it harder for wounded allies to deteriorate.',
+  'Strike to Stun':'When fighting unarmed or with a bludgeon, you can knock a target unconscious without killing them.',
+  'Bookish':'Libraries and archives feel like home — add +1 SL to Research tests involving written sources.',
+  'Carouser':'Spending a night drinking with others can yield useful information and introduce you to valuable contacts.',
+  'Super Numerate':'You perform complex calculations instantly in your head — add +1 SL to any test involving numbers.',
+  'Alley Cat':'You know every back alley and shortcut — ignore movement penalties in urban environments.',
+  'Beneath Notice':'You appear so forgettable and unremarkable that people tend to overlook and quickly forget you.',
+  'Sharp':'Your strikes find the gaps in armour — your attacks ignore 1 point of enemy Armour Points.',
+  'Break and Enter':'You force entry through doors, windows, and barricades with practised efficiency.',
+  'Shadow':'You are trained in following someone discreetly through a crowd without being noticed.',
+  'Drilled':'Military drill makes you effective in formation — add +1 SL when fighting in coordinated groups.',
+  'Tenacious':'Once per combat, when you reach 0 Wounds, make an Endurance test to keep standing.',
+  'Dealmaker':'You identify what the other party truly wants — add +1 SL to Haggle tests.',
+  'Numismatics':'You identify coins, spot forgeries, and calculate exchange rates instantly.',
+  'Embezzle':'You skim money from accounts and collections without leaving obvious evidence of the theft.',
+  'Sprinter':'Add your Agility Bonus to the distance covered when you sprint.',
+  'Fleet Footed':'Your Movement characteristic increases by +1 — you are naturally fast on your feet.',
+  'Step Aside':'Once per round, you dodge one attack without spending your Action — a free evasion.',
+  'Flee!':'Add your Agility Bonus to your movement when running away from danger.',
+  'Orientation':'You always know which way is north and rarely become lost, even in unfamiliar territory.',
+  'Animal Affinity':'Animals instinctively trust you — add +1 SL to all Animal Care and Charm Animal tests.',
+  'Trick-Riding':'You perform stunts from the saddle: hanging off the side, shooting while galloping, and more.',
+  'Attractive':'Your appearance opens social doors — add +1 SL to Charm tests when your looks are an advantage.',
+  'Mimic':'You convincingly replicate voices, accents, and sounds after only brief exposure.',
+  'Public-Speaking':'You address crowds effectively, allowing Charm tests to affect much larger audiences.',
+  'Berserk Charge':'When you charge into combat, add +1 to your Strength Bonus for that round\'s attack.',
+  'Frenzy':'You enter a battle frenzy — gaining ferocity and ignoring pain, at the cost of reason and self-preservation.',
+  'Combat Aware':'You are never caught off guard — you are never considered Surprised in combat situations.',
+  'Lightning Reflexes':'Your Agility is +5 — you are simply faster than most people.',
+  'Roughrider':'You fight on horseback as effectively as on foot, even in difficult combat conditions.',
+  'Crack the Whip':'You direct animals with authority — add +1 SL to Ride and Drive when controlling animals.',
+  'Warrior Born':'Your Weapon Skill is +5 — you were born with a natural gift for fighting.',
+  'Dirty Fighting':'Your style includes biting, eye-gouging, and dirty tricks — opponents rarely expect it.',
+  'In-fighter':'At very close range, you fight more effectively, not less — you thrive in the clinch.',
+  'Iron Jaw':'You can take a hit to the head without being stunned — reduce the effect of Stun Conditions.',
+  'Reversal':'When you defend successfully in melee, you may immediately counterattack without spending your Action.',
+  'Dual Wielder':'You fight effectively with a weapon in each hand, reducing off-hand attack penalties.',
+  'Fearless':'You are immune to Fear caused by the specified creature type — their menace simply does not affect you.',
+  'Slayer':'The oath of the Trollslayers — to seek an honourable death against ever-greater foes, atoning for a great shame.',
+  'Criminal':'You have underworld contacts and understand criminal enterprises — add +1 SL in criminal contexts.',
+  'Instinctive Diction':'You cast spells silently, without spoken words or obvious gestures, concealing your magic use.',
+  'Menacing':'Your presence unnerves people even before you speak — add +1 SL to Intimidate tests.',
+  'Cardsharp':'You manipulate cards with near-invisible skill — add +2 SL to Gamble tests involving card games.',
+  'Diceman':'You read dice games and subtly influence outcomes — add +2 SL to Gamble tests with dice.',
+  'Luck':'Once per session, reroll any single die and keep whichever result you prefer.',
+  'Noble Blood':'Genuine noble lineage — doors open and deference is shown that money cannot buy.',
+  'Fisherman':'You fish reliably enough to feed yourself and others — add +1 SL to food-gathering Survival tests.',
+  'Strong Swimmer':'You swim at full speed without penalty and can hold your breath for exceptionally long periods.',
+  'Waterman':'You are completely at home on rivers and lakes — add +1 SL to Row and Sail tests.',
+  'Strider':'You ignore movement penalties in a specific terrain type (forests, marshes, coasts, and so on).',
+  'Trapper':'Your traps are more effective — add +1 SL to Set Trap, and your traps are harder to spot.',
+  'Gregarious':'You make friends easily in social settings — add +1 SL to Gossip in convivial company.',
+  'Strong Back':'Your carrying capacity increases significantly — you handle heavy loads without strain.',
+  'Very Strong':'Your Strength is +5 — you are physically stronger than most people.',
+  'Marksman':'Add +1 SL to Ranged attacks when the target is stationary or completely unaware of you.',
+  'Seasoned Traveller':'Experience on the road pays off — add +1 SL to Navigation and Outdoor Survival tests.',
+  'Fast Hands':'You perform sleight of hand at speed, removing the penalty for being observed.',
+  'Beat Blade':'Before attacking, make an opposed Melee test to deflect or disarm your opponent.',
+  'Distract':'Create a brief opening in combat — the next ally to attack your target gains +10 to their test.',
+  'Feint':'Your deceptive attack forces the opponent to pass a Cool test or forfeit their defence.',
+  'Carouser':'Drinking with others can yield information and introduce you to useful contacts.',
+  'Waterman':'You are completely at home on rivers and lakes.',
+  'Impassable':'You ignore movement penalties in specific difficult terrain.',
+  'Iron Will':'Your resolve is formidable — add +1 SL to Cool and Willpower tests against mental effects.',
+};
+
+function T(name){
+  if(!name)return'';
+  // Try exact match first
+  let d=TOOLTIPS[name];
+  // Try stripping specialisation in parentheses e.g. "Lore (Chemistry)" → "Lore"
+  if(!d)d=TOOLTIPS[name.replace(/\s*\(.*\)$/,'').trim()];
+  return d?d.replace(/"/g,'\u201c').replace(/'/g,'\u2019'):'';
+}
+
+// Global tooltip handler
+(function(){
+  const el=document.createElement('div');el.className='tip';el.id='global-tip';
+  document.body.appendChild(el);
+  let cur=null;
+  document.addEventListener('mouseover',e=>{
+    const t=e.target.closest('[data-tip]');
+    if(t&&t!==cur){
+      cur=t;
+      const txt=t.dataset.tip;
+      if(txt){el.textContent=txt;el.classList.add('show');}
+    }else if(!t){cur=null;el.classList.remove('show');}
+  });
+  document.addEventListener('mousemove',e=>{
+    if(el.classList.contains('show')){
+      const x=e.clientX+14,y=e.clientY+16;
+      el.style.left=Math.min(x,window.innerWidth-el.offsetWidth-8)+'px';
+      el.style.top=Math.min(y,window.innerHeight-el.offsetHeight-8)+'px';
+    }
+  });
+  document.addEventListener('mouseout',e=>{
+    if(!e.target.closest('[data-tip]')){cur=null;el.classList.remove('show');}
+  });
+})();
+
+// ===================== PARTICLES =====================
+(function(){
+  const canvas=document.getElementById('particles-canvas');
+  const ctx=canvas.getContext('2d');
+  let particles=[];
+  function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+  resize();window.addEventListener('resize',resize);
+  for(let i=0;i<60;i++)particles.push({x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,vx:(Math.random()-0.5)*0.3,vy:-Math.random()*0.5-0.1,size:Math.random()*2+0.5,alpha:Math.random()*0.6+0.1,decay:Math.random()*0.003+0.001,hue:Math.random()*30+10});
+  function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach((p,i)=>{
+      p.x+=p.vx;p.y+=p.vy;p.alpha-=p.decay;
+      if(p.alpha<=0||p.y<0){particles[i]={x:Math.random()*canvas.width,y:canvas.height+5,vx:(Math.random()-0.5)*0.4,vy:-Math.random()*0.6-0.15,size:Math.random()*2+0.5,alpha:Math.random()*0.5+0.1,decay:Math.random()*0.003+0.001,hue:Math.random()*30+10};}
+      ctx.save();ctx.globalAlpha=p.alpha;
+      ctx.fillStyle=`hsl(${p.hue},80%,60%)`;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    });
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+// ===================== SPECIES =====================
+function initSpecies(){
+  const grid=document.getElementById('species-grid');
+  grid.innerHTML='';
+  Object.entries(SPECIES).forEach(([name,sp])=>{
+    const card=document.createElement('div');
+    card.className='species-card'+(char.species===name?' selected':'');
+    card.innerHTML=`<span class="species-icon">${sp.icon}</span><div class="species-name">${name}</div><div class="species-desc">${sp.desc}</div><div class="species-stats"><span class="stat-pill">Move ${sp.move}</span><span class="stat-pill">Fate ${sp.fate}</span><span class="stat-pill">Res ${sp.resilience}</span></div>`;
+    card.onclick=()=>selectSpecies(name);
+    grid.appendChild(card);
+  });
+}
+
+function selectSpecies(name,fromRoll=false){
+  char.species=name;char.speciesRolled=fromRoll;
+  document.querySelectorAll('.species-card').forEach((c,i)=>{
+    const sp=Object.keys(SPECIES)[i];
+    c.classList.toggle('selected',sp===name);
+    c.classList.toggle('dimmed',sp!==name&&!fromRoll);
+  });
+  updateXP();showNotif(name+' selected');
+}
+
+function rollSpecies(){
+  const area=document.getElementById('species-dice-area');
+  const tensEl=document.getElementById('species-die-tens');
+  const unitsEl=document.getElementById('species-die-units');
+  const res=document.getElementById('species-roll-result');
+  area.style.display='flex';
+  const roll=d(100);
+  animateD100(tensEl,unitsEl,roll,()=>{
+    let sp;
+    if(roll<=90)sp='Human';
+    else if(roll<=94)sp='Halfling';
+    else if(roll<=98)sp='Dwarf';
+    else if(roll===99)sp='High Elf';
+    else sp='Wood Elf';
+    res.textContent=`Rolled ${roll} — ${sp}`;
+    selectSpecies(sp,true);
+  });
+}
+
+// ===================== CAREER =====================
+let _careerMethod='roll1',_selectedClass='Academics',_careerRolls=[],_careerPickMode=false;
+
+function initCareer(){
+  renderClassTabs();renderCareerGrid();
+  document.getElementById('btn-roll-career').style.display=_careerMethod==='free'?'none':'inline-flex';
+}
+
+function selectCareerMethod(m){
+  _careerMethod=m;char.careerMethod=m;
+  document.querySelectorAll('[id^=cmethod-]').forEach(el=>el.classList.remove('selected'));
+  document.getElementById('cmethod-'+m).classList.add('selected');
+  document.getElementById('btn-roll-career').style.display=m==='free'?'none':'inline-flex';
+  document.getElementById('career-dice-area').style.display='none';
+  document.getElementById('career-roll-result').textContent='';
+  document.getElementById('career-roll-choices').innerHTML='';
+  _careerRolls=[];_careerPickMode=false;
+  renderCareerGrid();updateXP();
+}
+
+function renderClassTabs(){
+  const tabs=document.getElementById('class-tabs');tabs.innerHTML='';
+  CLASSES.forEach(cl=>{
+    const t=document.createElement('button');
+    t.className='class-tab'+(cl===_selectedClass?' active':'');
+    t.textContent=cl;t.onclick=()=>{_selectedClass=cl;renderClassTabs();renderCareerGrid();};
+    tabs.appendChild(t);
+  });
+}
+
+function renderCareerGrid(){
+  const grid=document.getElementById('career-grid');grid.innerHTML='';
+  const careers=CAREERS.filter(c=>c.class===_selectedClass&&(_careerMethod==='free'||c.species.includes(char.species)));
+  careers.forEach(c=>{
+    const card=document.createElement('div');
+    const avail=c.species.includes(char.species||'Human');
+    card.className='career-card'+(char.career===c.name?' selected':'')+((!avail&&_careerMethod==='free')?' unavailable':'');
+    if(_careerPickMode&&_careerRolls.length>0){
+      const rolled=_careerRolls.map(r=>r.name);
+      if(!rolled.includes(c.name))card.classList.add('dimmed');
+    }
+    const ctip=`${c.levels[0].title} \u2014 ${c.class} career. Status: ${c.levels[0].status}. Skills include ${c.levels[0].skills.slice(0,4).join(', ')}.`;
+    card.innerHTML=`<div class="career-name" data-tip="${ctip}">${c.name}</div><div class="career-title">${c.levels[0].title}</div><div class="career-status">${c.levels[0].status}</div>`;
+    card.onclick=()=>{if(!avail&&_careerMethod==='free')return;selectCareer(c);};
+    grid.appendChild(card);
+  });
+}
+
+function rollCareer(){
+  const avail=CAREERS.filter(c=>c.species.includes(char.species||'Human'));
+  if(!avail.length)return;
+  const area=document.getElementById('career-dice-area');
+  const tensEl=document.getElementById('career-die-tens');
+  const unitsEl=document.getElementById('career-die-units');
+  area.style.display='flex';
+  const count=_careerMethod==='roll3'?3:1;
+  const rolled=[];
+  for(let i=0;i<count;i++)rolled.push(avail[Math.floor(Math.random()*avail.length)]);
+  animateD100(tensEl,unitsEl,d(100),()=>{
+    if(count===1){
+      document.getElementById('career-roll-result').textContent='Rolled: '+rolled[0].name+' ('+rolled[0].levels[0].title+')';
+      selectCareer(rolled[0]);_selectedClass=rolled[0].class;renderClassTabs();renderCareerGrid();
+    }else{
+      _careerRolls=rolled;_careerPickMode=true;
+      const choices=document.getElementById('career-roll-choices');
+      choices.innerHTML='<span style="font-family:var(--ff-head);font-size:0.75rem;color:var(--goldhi)">Choose one:</span>';
+      rolled.forEach(r=>{
+        const b=document.createElement('button');
+        b.className='btn btn-sm';b.textContent=r.name+' ('+r.class+')';
+        b.onclick=()=>{selectCareer(r);_selectedClass=r.class;_careerPickMode=false;renderClassTabs();renderCareerGrid();};
+        choices.appendChild(b);
+      });
+    }
+  });
+}
+
+function selectCareer(c){
+  char.career=c.name;char.careerClass=c.class;
+  const detail=document.getElementById('career-detail-panel');
+  const lvl=c.levels[0];
+  detail.style.display='block';
+  detail.innerHTML=`<div class="career-detail"><h3>${c.name} — ${lvl.title}</h3>
+    <div class="detail-row"><span class="detail-label">Status</span><span class="tag">${lvl.status}</span></div>
+    <div class="detail-row"><span class="detail-label">Skills</span>${lvl.skills.map(s=>`<span class="tag" data-tip="${T(s)}">${s}</span>`).join('')}</div>
+    <div class="detail-row"><span class="detail-label">Talents</span>${lvl.talents.map(t=>`<span class="tag" data-tip="${T(t)}">${t}</span>`).join('')}</div>
+    <div class="detail-row"><span class="detail-label">Trappings</span>${lvl.trappings.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+    <div class="detail-row"><span class="detail-label">Species</span>${c.species.map(s=>`<span class="tag">${s}</span>`).join('')}</div>
+  </div>`;
+  renderCareerGrid();showNotif(c.name+' selected');
+}
+
+// ===================== ATTRIBUTES =====================
+let _attrMethod='roll',_poolVals=[],_selectedAttr=null,_pbPoints=100;
+
+function initAttrs(){
+  _attrMethod=char.attrMethod||'roll';
+  renderAttrTable();updateAttrDerived();
+}
+
+function selectAttrMethod(m){
+  _attrMethod=m;char.attrMethod=m;
+  document.querySelectorAll('[id^=amethod-]').forEach(el=>el.classList.remove('selected'));
+  document.getElementById('amethod-'+m).classList.add('selected');
+  document.getElementById('attr-rearrange-pool').style.display=m==='rearrange'?'block':'none';
+  document.getElementById('attr-pointbuy-info').style.display=m==='pointbuy'?'block':'none';
+  document.getElementById('btn-roll-all-attrs').style.display=m==='pointbuy'?'none':'inline-flex';
+  if(m==='pointbuy'){initPointBuy();}
+  renderAttrTable();updateXP();
+}
+
+function renderAttrTable(){
+  const sp=SPECIES[char.species]||SPECIES.Human;
+  const tbody=document.getElementById('attr-tbody');tbody.innerHTML='';
+  ATTR_KEYS.forEach(k=>{
+    const s=sp.stats[k]||[2,10,20];
+    const formula=`${s[0]}d${s[1]}+${s[2]}`;
+    const val=char.attrs[k]||0;
+    const bon=val?bonus(val):'—';
+    const tr=document.createElement('tr');
+    if(_attrMethod==='rearrange'&&_selectedAttr===k)tr.style.background='rgba(122,88,32,0.15)';
+    if(_attrMethod==='pointbuy'){
+      tr.innerHTML=`<td><span class="attr-name" data-tip="${T(k)}">${ATTR_NAMES[k]}</span></td><td><span class="attr-formula">${formula}</span></td>
+      <td><div style="display:flex;align-items:center;gap:6px"><button class="adv-btn" onclick="pbAdj('${k}',-1)">−</button><span class="attr-val" id="av-${k}">${s[2]+((char.attrs[k]||0))}</span><button class="adv-btn" onclick="pbAdj('${k}',1)">+</button></div></td>
+      <td class="attr-bonus" id="ab-${k}">${bonus(s[2]+(char.attrs[k]||0))}</td><td></td>`;
+    }else if(_attrMethod==='rearrange'){
+      tr.innerHTML=`<td><span class="attr-name" data-tip="${T(k)}" style="cursor:pointer" onclick="selectAttrSlot('${k}')">${ATTR_NAMES[k]}</span></td><td><span class="attr-formula">${formula}</span></td>
+      <td style="text-align:center"><span class="attr-val${val?' rolled':''}" id="av-${k}">${val||'—'}</span></td>
+      <td class="attr-bonus" id="ab-${k}">${val?bonus(val):'—'}</td>
+      <td><button class="btn btn-roll btn-sm" onclick="selectAttrSlot('${k}')">Assign</button></td>`;
+    }else{
+      tr.innerHTML=`<td><span class="attr-name" data-tip="${T(k)}">${ATTR_NAMES[k]}</span></td><td><span class="attr-formula">${formula}</span></td>
+      <td style="text-align:center"><span class="attr-val${val?' rolled':''}" id="av-${k}">${val||'—'}</span></td>
+      <td class="attr-bonus" id="ab-${k}">${val?bonus(val):'—'}</td>
+      <td><button class="btn btn-roll btn-sm" onclick="rollSingleAttr('${k}')">🎲</button></td>`;
+    }
+    tbody.appendChild(tr);
+  });
+}
+
+function rollAllAttrs(){
+  const sp=SPECIES[char.species]||SPECIES.Human;
+  if(_attrMethod==='rearrange'){
+    _poolVals=[];
+    for(let i=0;i<10;i++)_poolVals.push(roll2d10());
+    _poolVals.sort((a,b)=>b-a);
+    renderPool();
+    document.getElementById('attr-rearrange-pool').style.display='block';
+    showNotif('10 rolls ready — click Assign to place them');
+  }else{
+    ATTR_KEYS.forEach(k=>{const s=sp.stats[k];char.attrs[k]=roll2d10()+s[2];});
+    renderAttrTable();updateAttrDerived();
+  }
+}
+
+function rollSingleAttr(k){
+  const sp=SPECIES[char.species]||SPECIES.Human;
+  const s=sp.stats[k];
+  char.attrs[k]=roll2d10()+s[2];
+  const el=document.getElementById('av-'+k);
+  if(el){el.textContent=char.attrs[k];el.className='attr-val rolled';}
+  document.getElementById('ab-'+k).textContent=bonus(char.attrs[k]);
+  updateAttrDerived();
+}
+
+function selectAttrSlot(k){
+  _selectedAttr=k;renderAttrTable();
+}
+
+function renderPool(){
+  const pool=document.getElementById('pool-values');pool.innerHTML='';
+  _poolVals.forEach((v,i)=>{
+    const btn=document.createElement('button');
+    btn.className='btn btn-sm'+(v===null?' btn-disabled':'');
+    btn.textContent=v===null?'✓':v;
+    btn.disabled=v===null;
+    btn.onclick=()=>{
+      if(_selectedAttr&&v!==null){
+        const sp=SPECIES[char.species]||SPECIES.Human;
+        char.attrs[_selectedAttr]=v+sp.stats[_selectedAttr][2];
+        _poolVals[i]=null;_selectedAttr=null;
+        renderAttrTable();renderPool();updateAttrDerived();
+      }
+    };
+    pool.appendChild(btn);
+  });
+}
+
+function pbAdj(k,d){
+  const sp=SPECIES[char.species]||SPECIES.Human;
+  const cur=char.attrs[k]||0;
+  const newv=Math.max(4,Math.min(18,cur+d));
+  const diff=newv-cur;
+  if(diff>0&&_pbPoints<diff){showNotif('Not enough points');return;}
+  _pbPoints-=diff;char.attrs[k]=newv;
+  document.getElementById('pb-remaining').textContent=_pbPoints;
+  document.getElementById('av-'+k).textContent=sp.stats[k][2]+newv;
+  document.getElementById('ab-'+k).textContent=bonus(sp.stats[k][2]+newv);
+  updateAttrDerived();
+}
+
+function initPointBuy(){
+  _pbPoints=100;ATTR_KEYS.forEach(k=>char.attrs[k]=0);
+  document.getElementById('attr-rearrange-pool').style.display='none';
+  document.getElementById('attr-pointbuy-info').style.display='block';
+  document.getElementById('pb-remaining').textContent=100;
+  renderAttrTable();
+}
+
+function updateAttrDerived(){
+  const sp=SPECIES[char.species]||SPECIES.Human;
+  const a=char.attrs;
+  const SB=bonus(a.S),TB=bonus(a.T),WPB=bonus(a.WP),SBs=bonus(sp.stats.S[2]),TBs=bonus(sp.stats.T[2]),WPBs=bonus(sp.stats.WP[2]);
+  if(Object.values(a).some(v=>v>0)){
+    if(char.species==='Halfling')char.wounds=(2*TB)+WPB;
+    else char.wounds=SB+(2*TB)+WPB;
+    char.fate=sp.fate;char.resilience=sp.resilience;char.extraPts=sp.extra;char.move=sp.move;
+    char.fortune=char.fate;char.resolve=char.resilience;
+    document.getElementById('attr-derived').style.display='block';
+    const row=document.getElementById('derived-row');
+    row.innerHTML=`<div class="derived-box"><span class="d-name" data-tip="${T('Wounds')}">Wounds</span><span class="d-val">${char.wounds}</span></div>
+      <div class="derived-box"><span class="d-name" data-tip="${T('Move')}">Move</span><span class="d-val">${char.move}</span></div>
+      <div class="derived-box"><span class="d-name" data-tip="${T('Fate')}">Fate</span><span class="d-val" id="d-fate">${char.fate}</span></div>
+      <div class="derived-box"><span class="d-name" data-tip="${T('Fortune')}">Fortune</span><span class="d-val">${char.fate}</span></div>
+      <div class="derived-box"><span class="d-name" data-tip="${T('Resilience')}">Resilience</span><span class="d-val" id="d-res">${char.resilience}</span></div>
+      <div class="derived-box"><span class="d-name" data-tip="${T('Resolve')}">Resolve</span><span class="d-val">${char.resilience}</span></div>`;
+    document.getElementById('extra-remaining').textContent=`Remaining: ${sp.extra-((+document.getElementById('extra-fate').value||0)+(+document.getElementById('extra-res').value||0))}`;
+  }
+}
+
+function updateExtraPoints(){
+  const sp=SPECIES[char.species]||SPECIES.Human;
+  const ef=+document.getElementById('extra-fate').value||0;
+  const er=+document.getElementById('extra-res').value||0;
+  const remaining=sp.extra-ef-er;
+  document.getElementById('extra-remaining').textContent='Remaining: '+remaining;
+  if(remaining<0){showNotif('Exceeds extra points!');return;}
+  char.fate=sp.fate+ef;char.fortune=char.fate;
+  char.resilience=sp.resilience+er;char.resolve=char.resilience;
+  document.getElementById('d-fate').textContent=char.fate;
+  document.getElementById('d-res').textContent=char.resilience;
+}
+
+// ===================== SKILLS =====================
+function initSkills(){
+  const sp=SPECIES[char.species]||SPECIES.Human;
+  const career=CAREERS.find(c=>c.name===char.career);
+  const lvl=career?.levels[0];
+  if(!lvl)return;
+  if(!char.careerSkills||Object.keys(char.careerSkills).length===0){
+    char.careerSkills={};lvl.skills.forEach(s=>char.careerSkills[s]=0);
+  }
+  renderSpeciesSkills(sp);renderCareerSkills(lvl);
+}
+
+function renderSpeciesSkills(sp){
+  const list=document.getElementById('species-skills-list');list.innerHTML='';
+  sp.skills.forEach(sk=>{
+    const is5=char.speciesSkills5.includes(sk);
+    const is3=char.speciesSkills3.includes(sk);
+    const row=document.createElement('div');row.className='species-skill-check';
+    row.innerHTML=`<label data-tip="${T(sk)}">${sk}</label>
+      <div class="adv-selector">
+        <div class="adv-lvl${is5?' selected':''}" onclick="toggleSpeciesSkill('${sk}',5)">+5</div>
+        <div class="adv-lvl${is3?' selected':''}" onclick="toggleSpeciesSkill('${sk}',3)">+3</div>
+      </div>`;
+    list.appendChild(row);
+  });
+  document.getElementById('sp5-count').textContent=char.speciesSkills5.length;
+  document.getElementById('sp3-count').textContent=char.speciesSkills3.length;
+}
+
+function toggleSpeciesSkill(sk,lvl){
+  const sp=SPECIES[char.species]||SPECIES.Human;
+  if(lvl===5){
+    if(char.speciesSkills5.includes(sk)){char.speciesSkills5=char.speciesSkills5.filter(s=>s!==sk);}
+    else if(char.speciesSkills5.length<3){char.speciesSkills5.push(sk);char.speciesSkills3=char.speciesSkills3.filter(s=>s!==sk);}
+    else{showNotif('Already chose 3 skills at +5');return;}
+  }else{
+    if(char.speciesSkills3.includes(sk)){char.speciesSkills3=char.speciesSkills3.filter(s=>s!==sk);}
+    else if(char.speciesSkills3.length<3){char.speciesSkills3.push(sk);char.speciesSkills5=char.speciesSkills5.filter(s=>s!==sk);}
+    else{showNotif('Already chose 3 skills at +3');return;}
+  }
+  renderSpeciesSkills(sp);
+}
+
+function renderCareerSkills(lvl){
+  const list=document.getElementById('career-skills-list');list.innerHTML='';
+  const used=Object.values(char.careerSkills).reduce((a,b)=>a+b,0);
+  document.getElementById('career-skill-used').textContent=used;
+  document.getElementById('career-skill-fill').style.width=(used/40*100)+'%';
+  lvl.skills.forEach(sk=>{
+    const adv=char.careerSkills[sk]||0;
+    const row=document.createElement('div');row.className='skill-row';
+    const pips=Array.from({length:10},(_,i)=>`<div class="adv-pip${i<adv?' filled':''}"></div>`).join('');
+    row.innerHTML=`<span class="skill-name" data-tip="${T(sk)}">${sk}</span>
+      <div class="skill-adv">
+        <button class="adv-btn" onclick="adjCareerSkill('${sk}',-1)">−</button>
+        <span class="adv-count">${adv}</span>
+        <button class="adv-btn" onclick="adjCareerSkill('${sk}',1)">+</button>
+        <div class="adv-bar">${pips}</div>
+      </div>`;
+    list.appendChild(row);
+  });
+}
+
+function adjCareerSkill(sk,d){
+  const career=CAREERS.find(c=>c.name===char.career);const lvl=career?.levels[0];if(!lvl)return;
+  const used=Object.values(char.careerSkills).reduce((a,b)=>a+b,0);
+  const cur=char.careerSkills[sk]||0;
+  if(d>0&&used>=40){showNotif('All 40 advances used');return;}
+  if(d>0&&cur>=10){showNotif('Maximum 10 advances per skill');return;}
+  if(d<0&&cur<=0)return;
+  char.careerSkills[sk]=(cur+d);
+  renderCareerSkills(lvl);
+}
+
+// ===================== TALENTS =====================
+function initTalents(){
+  const sp=SPECIES[char.species]||SPECIES.Human;
+  const career=CAREERS.find(c=>c.name===char.career);
+  char.autoTalents=[...sp.autoTalents];
+  // Auto talents
+  const autoList=document.getElementById('auto-talents-list');autoList.innerHTML='';
+  const ul=document.createElement('ul');ul.className='talent-list';
+  sp.autoTalents.forEach(t=>{const li=document.createElement('li');li.innerHTML=`<span class="talent-auto" data-tip="${T(t)}">${t}</span>`;ul.appendChild(li);});
+  autoList.appendChild(ul);
+  // Choice talents
+  const choiceDiv=document.getElementById('species-choice-talents');choiceDiv.innerHTML='';
+  sp.choiceTalents.forEach((pair,i)=>{
+    const label=document.createElement('p');label.style.cssText='font-size:0.8rem;margin:10px 0 6px;color:var(--golddark);font-family:var(--ff-head);font-size:0.72rem;letter-spacing:0.08em';label.textContent='Choose one:';choiceDiv.appendChild(label);
+    const opts=document.createElement('div');opts.className='talent-options';
+    pair.forEach(t=>{
+      const opt=document.createElement('div');opt.className='talent-opt'+(char.chosenTalents.includes(t)?' selected':'');
+      opt.innerHTML=`<input type="radio" name="choice${i}" value="${t}"><label data-tip="${T(t)}">${t}</label>`;
+      opt.onclick=()=>{
+        char.chosenTalents=char.chosenTalents.filter(c=>!pair.includes(c));char.chosenTalents.push(t);
+        choiceDiv.querySelectorAll('.talent-opt').forEach(o=>o.classList.remove('selected'));opt.classList.add('selected');
+      };
+      opts.appendChild(opt);
+    });
+    choiceDiv.appendChild(opts);
+  });
+  // Random talents
+  const randSec=document.getElementById('random-talents-section');
+  randSec.style.display=sp.randomCount>0?'block':'none';
+  if(sp.randomCount>0){
+    const slots=document.getElementById('random-talent-slots');slots.innerHTML='';
+    for(let i=0;i<sp.randomCount;i++){
+      const t=char.randomTalents[i]||null;
+      const badge=document.createElement('span');badge.className='random-talent-badge'+(t?' revealed':'');badge.id='rt-'+i;badge.textContent=t||'???';if(t)badge.dataset.tip=T(t);
+      slots.appendChild(badge);
+    }
+  }
+  // Doom (Human only)
+  const doomSec=document.getElementById('doom-section');
+  doomSec.style.display=char.species==='Human'?'block':'none';
+  if(char.species==='Human'){
+    const sel=document.getElementById('doom-select');sel.innerHTML='<option value="">— Select a doom —</option>';
+    DOOMS.forEach((d,i)=>{const o=document.createElement('option');o.value=d;o.textContent=(i+1)+'. '+d.substring(0,50)+'...';sel.appendChild(o);});
+    sel.style.display='block';document.getElementById('doom-selector').style.display='block';
+    if(char.backstory.doom){sel.value=char.backstory.doom;document.getElementById('doom-text').style.display='block';document.getElementById('doom-text').textContent='"'+char.backstory.doom+'"';}
+  }
+  // Career talent
+  const careerOpts=document.getElementById('career-talent-options');careerOpts.innerHTML='';
+  if(career){
+    const opts=document.createElement('div');opts.className='talent-options';opts.style.gridTemplateColumns='1fr';
+    career.levels[0].talents.forEach(t=>{
+      const opt=document.createElement('div');opt.className='talent-opt'+(char.careerTalent===t?' selected':'');
+      opt.innerHTML=`<input type="radio" name="ct" value="${t}"><label data-tip="${T(t)}">${t}</label>`;
+      opt.onclick=()=>{char.careerTalent=t;careerOpts.querySelectorAll('.talent-opt').forEach(o=>o.classList.remove('selected'));opt.classList.add('selected');};
+      opts.appendChild(opt);
+    });
+    careerOpts.appendChild(opts);
+  }
+}
+
+function rollRandomTalents(){
+  const sp=SPECIES[char.species]||SPECIES.Human;
+  char.randomTalents=[];
+  for(let i=0;i<sp.randomCount;i++){
+    let t;do{t=RANDOM_TALENTS[Math.floor(Math.random()*RANDOM_TALENTS.length)];}while(char.randomTalents.includes(t));
+    char.randomTalents.push(t);
+    const el=document.getElementById('rt-'+i);
+    if(el){el.textContent=t;el.classList.add('revealed');el.dataset.tip=T(t);}
+  }
+}
+
+function rollDoom(){
+  const i=Math.floor(Math.random()*DOOMS.length);
+  const d=DOOMS[i];char.backstory.doom=d;
+  document.getElementById('doom-text').textContent='"'+d+'"';
+  document.getElementById('doom-text').style.display='block';
+  document.getElementById('doom-select').value=d;
+}
+
+function selectDoom(){
+  const v=document.getElementById('doom-select').value;
+  char.backstory.doom=v;
+  if(v){document.getElementById('doom-text').textContent='"'+v+'"';document.getElementById('doom-text').style.display='block';}
+}
+
+// ===================== TRAPPINGS =====================
+function initTrappings(){
+  const career=CAREERS.find(c=>c.name===char.career);
+  const lvl=career?.levels[0];
+  char.classTrappings=CLASS_TRAPPINGS[char.careerClass]||[];
+  char.careerTrappings=lvl?.trappings||[];
+  const div=document.getElementById('trappings-content');
+  div.innerHTML=`<div class="trapping-section">
+    <h4>${char.careerClass} Class Trappings</h4>
+    <div class="trapping-list">${char.classTrappings.map(t=>`<span class="trapping-item">${t}</span>`).join('')}</div>
+  </div>
+  <div class="trapping-section">
+    <h4>${char.career} Starting Trappings</h4>
+    <div class="trapping-list">${char.careerTrappings.map(t=>`<span class="trapping-item">${t}</span>`).join('')}</div>
+  </div>`;
+}
+
+function rollWealth(){
+  const career=CAREERS.find(c=>c.name===char.career);
+  const status=career?.levels[0]?.status||'Brass 1';
+  const parts=status.split(' ');const tier=parts[0];const standing=+parts[1]||1;
+  char.wealth={gc:0,ss:0,bp:0};
+  if(tier==='Gold'){char.wealth.gc=standing;}
+  else if(tier==='Silver'){char.wealth.ss=(d(10)*standing);}
+  else{char.wealth.bp=(d(10)+d(10))*standing;}
+  document.getElementById('w-gc').textContent=char.wealth.gc;
+  document.getElementById('w-ss').textContent=char.wealth.ss;
+  document.getElementById('w-bp').textContent=char.wealth.bp;
+  showNotif('Wealth rolled!');
+}
+
+// ===================== DETAILS =====================
+function initDetails(){
+  const sp=SPECIES[char.species]||SPECIES.Human;
+  // Populate selects
+  const eyeSel=document.getElementById('char-eyes');
+  eyeSel.innerHTML=sp.eyes.map(e=>`<option${char.details.eyes===e?' selected':''}>${e}</option>`).join('');
+  if(!char.details.eyes)char.details.eyes=sp.eyes[0];
+  eyeSel.onchange=()=>{char.details.eyes=eyeSel.value;};
+  const hairSel=document.getElementById('char-hair');
+  hairSel.innerHTML=sp.hair.map(h=>`<option${char.details.hair===h?' selected':''}>${h}</option>`).join('');
+  if(!char.details.hair)char.details.hair=sp.hair[0];
+  hairSel.onchange=()=>{char.details.hair=hairSel.value;};
+  const signSel=document.getElementById('char-sign');
+  signSel.innerHTML=STAR_SIGNS.map(s=>`<option${char.details.starSign===s?' selected':''}>${s}</option>`).join('');
+  if(!char.details.starSign)char.details.starSign=STAR_SIGNS[0];
+  // Restore saved values
+  if(char.details.name)document.getElementById('char-name').value=char.details.name;
+  if(char.details.age)document.getElementById('char-age').value=char.details.age;
+  if(char.details.height)document.getElementById('char-height').value=char.details.height;
+  if(char.details.marks)document.getElementById('char-marks').value=char.details.marks;
+  // Personality
+  const pg=document.getElementById('personality-grid');pg.innerHTML='';
+  PERSONALITIES.forEach(p=>{
+    const chip=document.createElement('div');chip.className='pers-chip'+(char.backstory.personality.includes(p)?' selected':'');
+    chip.innerHTML=`<input type="checkbox" value="${p}">${p}`;
+    chip.onclick=()=>{
+      chip.classList.toggle('selected');
+      if(chip.classList.contains('selected'))char.backstory.personality.push(p);
+      else char.backstory.personality=char.backstory.personality.filter(x=>x!==p);
+    };
+    pg.appendChild(chip);
+  });
+}
+
+function generateName(){
+  const sp=char.species||'Human';const g=document.getElementById('name-gender').value;
+  const tbl=NAMES[sp]||NAMES.Human;
+  const first=tbl[g==='Female'?'F':'M'];const sur=tbl.S;
+  const name=first[Math.floor(Math.random()*first.length)]+' '+(sur[0]?sur[Math.floor(Math.random()*sur.length)]:'');
+  char.details.name=name.trim();document.getElementById('char-name').value=char.details.name;
+}
+
+function rollAge(){
+  const sp=SPECIES[char.species]||SPECIES.Human;
+  let age=sp.ageBase;for(let i=0;i<sp.ageDice;i++)age+=d(sp.ageSides);
+  char.details.age=age;document.getElementById('char-age').value=age;
+}
+
+function rollHeight(){
+  const sp=SPECIES[char.species]||SPECIES.Human;
+  let h=sp.heightBase;for(let i=0;i<sp.heightDice;i++)h+=d(sp.heightSides);
+  const ft=Math.floor(h/12);const inch=h%12;
+  char.details.height=`${ft}'${inch}"`;document.getElementById('char-height').value=char.details.height;
+}
+
+function rollEyes(){const sp=SPECIES[char.species]||SPECIES.Human;const v=sp.eyes[Math.floor(Math.random()*sp.eyes.length)];char.details.eyes=v;document.getElementById('char-eyes').value=v;}
+function rollHair(){const sp=SPECIES[char.species]||SPECIES.Human;const v=sp.hair[Math.floor(Math.random()*sp.hair.length)];char.details.hair=v;document.getElementById('char-hair').value=v;}
+function rollStarSign(){const v=STAR_SIGNS[Math.floor(Math.random()*STAR_SIGNS.length)];char.details.starSign=v;document.getElementById('char-sign').value=v;}
+function suggestMark(){const v=MARKS[Math.floor(Math.random()*MARKS.length)];char.details.marks=v;document.getElementById('char-marks').value=v;}
+
+// ===================== CHARACTER SHEET =====================
+function initSheet(){
+  const career=CAREERS.find(c=>c.name===char.career);const lvl=career?.levels[0];
+  const sp=SPECIES[char.species]||SPECIES.Human;
+  const a=char.attrs;const allTalents=[...char.autoTalents,...char.chosenTalents,...char.randomTalents,...(char.careerTalent?[char.careerTalent]:[])];
+  const allSkills={};
+  char.speciesSkills5.forEach(s=>allSkills[s]=(allSkills[s]||0)+5);
+  char.speciesSkills3.forEach(s=>allSkills[s]=(allSkills[s]||0)+3);
+  Object.entries(char.careerSkills).forEach(([s,v])=>{if(v>0)allSkills[s]=(allSkills[s]||0)+v;});
+  const skillList=Object.entries(allSkills).sort((a,b)=>a[0].localeCompare(b[0]));
+  const name=char.details.name||'Unknown Hero';
+  document.getElementById('sheet-content').innerHTML=`
+  <div class="sheet-header">
+    <div class="sheet-name">${name}</div>
+    <div class="sheet-subtitle">${char.species} ${char.career} — ${lvl?.title||''}</div>
+    <div style="font-family:var(--ff-head);font-size:0.72rem;color:var(--golddark);margin-top:4px">${lvl?.status||''} &middot; Move ${char.move}</div>
+  </div>
+  <div style="margin-bottom:14px">
+    <div class="sheet-section"><h4>Derived</h4>
+      <div class="derived-row">
+        ${[['Wounds',char.wounds],['Fate',char.fate],['Fortune',char.fortune],['Resilience',char.resilience],['Resolve',char.resolve],['Move',char.move]].map(([n,v])=>`<div class="derived-box"><span class="d-name" data-tip="${T(n)}">${n}</span><span class="d-val">${v}</span></div>`).join('')}
+      </div>
+    </div>
+  </div>
+  <div class="sheet-grid">
+    <div>
+      <div class="sheet-section">
+        <h4>Characteristics</h4>
+        <div class="stat-grid">
+          ${ATTR_KEYS.map(k=>`<div class="stat-box"><span class="stat-box-name" data-tip="${T(k)}">${k}</span><span><span class="stat-box-val">${a[k]||'—'}</span><span class="stat-box-bonus">${a[k]?'('+bonus(a[k])+')':''}</span></span></div>`).join('')}
+        </div>
+      </div>
+      <div class="sheet-section" style="margin-top:14px">
+        <h4>Talents</h4>
+        <div>${allTalents.map(t=>`<div class="talent-sheet-item" data-tip="${T(t)}">${t}</div>`).join('') || '<div style="font-family:var(--ff-body);font-size:0.82rem;color:var(--txt);font-style:italic">None selected</div>'}</div>
+      </div>
+      ${char.backstory.doom?`<div class="sheet-section" style="margin-top:14px"><h4>Doom</h4><div class="doom-text" style="margin-top:0">"${char.backstory.doom}"</div></div>`:''}
+    </div>
+    <div>
+      <div class="sheet-section">
+        <h4>Skills</h4>
+        <div>${skillList.length?skillList.map(([s,v])=>`<div class="skill-sheet-item"><span data-tip="${T(s)}">${s}</span><span class="skill-sheet-val">+${v}</span></div>`).join(''):'<div style="font-family:var(--ff-body);font-size:0.82rem;color:var(--txt);font-style:italic">No skills advanced</div>'}</div>
+      </div>
+      <div class="sheet-section" style="margin-top:14px">
+        <h4>Trappings</h4>
+        <div style="font-family:var(--ff-body);font-size:0.82rem;color:var(--txt)">${[...char.classTrappings,...char.careerTrappings].map(t=>`<div style="padding:2px 0;border-bottom:1px solid rgba(122,88,32,0.1)">${t}</div>`).join('')}</div>
+        ${char.personalItems?`<div style="margin-top:8px;font-family:var(--ff-body);font-size:0.82rem;color:var(--txt);font-style:italic">${char.personalItems}</div>`:''}
+      </div>
+      <div class="sheet-section" style="margin-top:14px">
+        <h4>Wealth</h4>
+        <div class="wealth-display" style="padding:10px">
+          <div class="coin"><div class="coin-val gc">${char.wealth.gc}</div><div class="coin-lbl">GC</div></div>
+          <div class="coin"><div class="coin-val ss">${char.wealth.ss}</div><div class="coin-lbl">SS</div></div>
+          <div class="coin"><div class="coin-val bp">${char.wealth.bp}</div><div class="coin-lbl">BP</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="divider" style="margin:16px 0"><span>✦</span></div>
+  <div class="sheet-grid">
+    <div class="sheet-section">
+      <h4>Appearance &amp; Details</h4>
+      <div class="detail-info">
+        <strong>Age</strong>${char.details.age||'—'}<br>
+        <strong>Height</strong>${char.details.height||'—'}<br>
+        <strong>Eyes</strong>${char.details.eyes||'—'}<br>
+        <strong>Hair</strong>${char.details.hair||'—'}<br>
+        <strong>Star Sign</strong>${char.details.starSign||'—'}<br>
+        <strong>Marks</strong>${char.details.marks||'—'}
+      </div>
+      ${char.backstory.personality.length?`<div style="margin-top:10px"><strong style="font-family:var(--ff-head);font-size:0.68rem;color:var(--golddark);letter-spacing:0.08em;text-transform:uppercase">Personality</strong><div style="font-family:var(--ff-body);font-size:0.82rem;color:var(--txt);margin-top:4px">${char.backstory.personality.join(', ')}</div></div>`:''}
+    </div>
+    <div class="sheet-section">
+      <h4>Ambitions</h4>
+      ${char.backstory.short?`<p style="font-family:var(--ff-head);font-size:0.65rem;color:var(--golddark);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:3px">Short-Term (+50 XP)</p><div class="backstory-text">${char.backstory.short}</div>`:''}
+      ${char.backstory.long?`<p style="font-family:var(--ff-head);font-size:0.65rem;color:var(--golddark);letter-spacing:0.08em;text-transform:uppercase;margin:10px 0 3px">Long-Term (+500 XP)</p><div class="backstory-text">${char.backstory.long}</div>`:''}
+      <p style="font-family:var(--ff-head);font-size:0.65rem;color:var(--golddark);letter-spacing:0.08em;text-transform:uppercase;margin:10px 0 3px">Starting XP Bonus</p>
+      <div style="font-family:var(--ff-head);font-size:1.4rem;color:var(--goldhi)">${char.xp} XP</div>
+      <div style="font-family:var(--ff-body);font-style:italic;font-size:0.78rem;color:var(--txt);margin-top:5px;line-height:1.5">This is your starting experience bonus, earned by embracing fate during character creation. It is carried into play and spent between sessions to advance characteristics and skills — beyond the advances already gained during creation.</div>
+    </div>
+  </div>
+  ${char.backstory.story?`<div class="sheet-section" style="margin-top:14px"><h4>Background</h4><div class="backstory-text">${char.backstory.story}</div></div>`:''}`;
+}
+
+function printSheet(){window.print();}
+
+// ===================== IMAGE PROMPT =====================
+const CAREER_LOOK = {
+  // Academics
+  Apothecary:{front:'wearing a leather apron over practical clothing, with pouches of herbs and glass vials on a belt, carrying a leather satchel and pestle and mortar',back:'leather satchel and hanging pouches visible, apron ties across the back'},
+  Engineer:{front:'wearing practical work clothing and heavy leather gloves, carrying engineering tools and a blackpowder firearm, goggles pushed up on forehead',back:'tool kit and work pack visible'},
+  Lawyer:{front:'wearing dark scholarly robes, carrying a thick law book under one arm, a magnifying glass on a chain',back:'long robes and document satchel'},
+  Nun:{front:'wearing plain white religious robes and a wimple, carrying a wooden holy symbol on a cord, gentle and determined expression',back:'plain robes and holy symbol on cord'},
+  Physician:{front:'wearing a long leather coat over town clothes, carrying a physician\'s bag with bandages and healing implements',back:'physician\'s bag and medical equipment'},
+  Priest:{front:'wearing religious robes embroidered with divine symbols, a prominent holy symbol around the neck, an expression of devout purpose',back:'robes and holy symbol on chain'},
+  Scholar:{front:'wearing ink-stained academic robes, carrying a bulging book satchel and writing kit, spectacles perched on nose',back:'heavy book satchel and parchment rolls protruding'},
+  Wizard:{front:'wearing dark robes marked with subtle arcane sigils, carrying a worn grimoire and a long quarterstaff, eyes with an otherworldly quality',back:'flowing robes and grimoire satchel, staff across back'},
+  // Burghers
+  Agitator:{front:'wearing worn town clothes with ink-stained fingers, carrying a bundle of pamphlets and hammer and nails, an agitator\'s fire in the eyes',back:'pamphlet satchel and tools at belt'},
+  Artisan:{front:'wearing a leather jerkin over a work shirt, with chalk marks on clothing and craft tools at belt',back:'leather jerkin and trade tools hanging'},
+  Beggar:{front:'wearing ragged patched clothing and a threadbare cloak, holding a battered wooden cup, gaunt and watchful',back:'tattered cloak and rolled threadbare blanket'},
+  Investigator:{front:'wearing a long coat, carrying a lantern, leather journal, and quill at belt, observant eyes and a slight stoop of concentration',back:'long investigation coat and evidence satchel'},
+  Merchant:{front:'wearing prosperous town clothing, carrying an abacus and ledger, a well-filled coin purse at belt',back:'merchant\'s trade pack and canvas tarpaulin roll'},
+  'Rat Catcher':{front:'wearing patched working clothes, a small but vicious dog straining on a leash at side, carrying a sling and bulging canvas sack',back:'bulging sack slung over shoulder, dog lead in hand'},
+  Townsman:{front:'wearing decent town clothing and sturdy boots, carrying ledgers and documents',back:'document case and sturdy town cloak'},
+  Watchman:{front:'wearing a leather jack over a uniform, carrying a hand weapon, a storm lantern hanging from belt',back:'uniform and lantern at belt, hand weapon at hip'},
+  // Courtiers
+  Advisor:{front:'wearing fine but practical clothing, carrying an elegant writing kit, with an air of quiet intelligence and careful observation',back:'fine coat and document satchel'},
+  Artist:{front:'wearing paint-spattered but fashionable clothing, carrying brushes and a portfolio case under one arm',back:'art supplies and portfolio satchel'},
+  Duellist:{front:'wearing fashionable clothing with a rapier or fine hand weapon at hip, light-footed athletic stance, a duelling scar on the cheek',back:'fine clothing and sword scabbard at hip'},
+  Envoy:{front:'wearing formal livery and a leather jack, carrying a sealed scroll case and looking alert',back:'livery coat and scroll case across back'},
+  Noble:{front:'wearing luxurious courtly clothing with fine embroidery and jewellery, a mirror and fine weapon at belt, impeccably groomed',back:'richly embroidered coat and personal servant nearby'},
+  Servant:{front:'wearing plain servant\'s livery, carrying a floor brush and cleaning implements, an expression of resigned practicality',back:'plain livery and cleaning implements'},
+  Spy:{front:'wearing deliberately plain forgettable clothing with a hooded cloak pulled close, carrying a charcoal stick and two different sets of clothing in a bag',back:'hooded cloak concealing identity and equipment'},
+  Warden:{front:'wearing official livery and carrying a large keyring, a storm lantern, and an air of watchful authority',back:'livery and large keyring at belt'},
+  // Peasants
+  Bailiff:{front:'wearing practical work clothes and a leather jack, carrying a hand weapon and a small iron strongbox, stern officious expression',back:'leather jack and strongbox'},
+  'Hedge Witch':{front:'wearing rough rural clothes and a weathered cloak, carrying a quarterstaff hung with lucky charms and dried herbs, a knowing expression',back:'staff hung with charms, backpack of herbs and curious items'},
+  Herbalist:{front:'wearing practical outdoor clothing, sturdy boots, and a travelling cloak, carrying a sling bag overflowing with dried herbs and plants',back:'herb-stuffed satchel and travelling cloak'},
+  Hunter:{front:'wearing practical outdoor clothing with a leather cloak, carrying animal traps on a belt, a sling with stone bullets, and a hand weapon',back:'trap bundle and hunting pack, cloak for camouflage'},
+  Miner:{front:'wearing tough work clothing, carrying a spade and a prospecting pan, coal-stained with calloused hands',back:'spade and mining equipment, rough work coat'},
+  Mystic:{front:'wearing colourful layered clothing adorned with cheap jewellery, carrying a deck of tarot cards or dice, an air of theatrical mysticism',back:'colourful layered clothing and tarot card satchel'},
+  Scout:{front:'wearing a leather jack and hooded cloak for concealment, carrying a coil of rope and a hand weapon, attentive and alert',back:'rope coil and leather jack, hooded cloak for cover'},
+  Villager:{front:'wearing rough practical peasant clothing, unadorned and well-worn, with the weathered look of outdoor labour',back:'simple peasant clothing and basic tools'},
+  // Rangers
+  'Bounty Hunter':{front:'wearing a leather jerkin over a travel shirt, carrying manacles on a belt alongside a hand weapon, dangerous and alert expression',back:'rope and restraints visible, bounty equipment pack'},
+  Coachman:{front:'wearing a heavy warm coat and sturdy gloves, carrying a long coach whip, weathered and practical look',back:'heavy coat and whip coiled at belt'},
+  Entertainer:{front:'wearing colourful performer\'s clothing, carrying a musical instrument, gesturing expressively',back:'performer\'s costume and instrument case'},
+  Flagellant:{front:'wearing tattered ragged religious robes, carrying a flail, wild-eyed with fervent devotion, self-inflicted ritual scars visible on arms',back:'tattered robes and flail chain, penitent\'s back'},
+  Messenger:{front:'wearing practical light travelling clothes, a scroll case on belt, athletic build and quick-looking stance',back:'light pack and scroll case, messenger\'s surcoat'},
+  Pedlar:{front:'wearing worn travelling clothes, carrying an enormous backpack stuffed with wares, a rolled tent strapped on top',back:'enormous pedlar\'s pack overflowing with goods and tent'},
+  'Road Warden':{front:'wearing a leather jack and carrying a loaded crossbow, bolts at belt, a warden\'s badge of authority visible',back:'leather jack with crossbow slung across back'},
+  'Witch Hunter':{front:'wearing a long dark greatcoat and wide-brimmed hat, carrying a hand weapon and interrogation implements, grim and relentless expression',back:'long dark coat with equipment strapped beneath, wide-brimmed hat'},
+  // Riverfolk
+  Boatman:{front:'wearing a leather jack over river working clothes, wielding a long boat hook as weapon, practical and tough river-hardened look',back:'leather jack and boat hook'},
+  Huffer:{front:'wearing practical river working clothes with a storm lantern at belt, carrying a boat hook, experienced riverman\'s bearing',back:'river clothes and lantern at belt'},
+  Riverwarden:{front:'wearing a leather jack over an official uniform, carrying a sword, authoritative waterways warden bearing',back:'riverwarden uniform with sword at hip'},
+  Riverwoman:{front:'wearing leather leggings and practical river clothes, carrying a fishing rod and bucket, tough and capable expression',back:'practical river working gear and fishing equipment'},
+  Seaman:{front:'wearing sailor\'s clothes with a weather-beaten and salt-stained look, carrying a mop and bucket',back:'sailor\'s gear and sea equipment'},
+  Smuggler:{front:'wearing dark practical clothes with a mask or scarves concealing face partially, carrying a storm lantern and a large heavy sack',back:'dark concealing cloak over hidden goods, large sack'},
+  Stevedore:{front:'wearing leather gloves and a leather jack, powerfully built with dock-worker\'s physique, carrying a large boat hook',back:'leather jack and dock-loading equipment'},
+  Wrecker:{front:'wearing rough practical clothing with heavy leather gloves, carrying a crowbar and a large canvas sack, opportunistic expression',back:'crowbar through belt and bulging sack of salvage'},
+  // Rogues
+  Bawd:{front:'wearing somewhat fashionable but worn clothing, carrying a flask of spirits, charming and disarming expression',back:'fashionable-but-worn outfit and hidden flask'},
+  Charlatan:{front:'wearing slightly too-fine clothing for their station, carrying a deck of playing cards and dice, a disarming convincing smile',back:'fine coat concealing a variety of tricks and props'},
+  Fence:{front:'wearing decent town clothes, a hand weapon at hip, shifty-eyed but surface-friendly expression',back:'town coat with hidden internal pockets'},
+  'Grave Robber':{front:'wearing dark hooded clothing, carrying a crowbar and a folded handcart, furtive and nervous expression',back:'hooded dark cloak and crowbar across back'},
+  Outlaw:{front:'wearing a leather jerkin with a bedroll strapped behind, carrying a hand weapon, the weathered look of someone living outside the law',back:'bedroll strapped on, leather jerkin'},
+  Racketeer:{front:'wearing a leather jack with brass knuckles visible at belt, menacing and confident expression',back:'leather jack and intimidating heavy posture'},
+  Thief:{front:'wearing a leather jerkin over dark practical clothes, carrying a crowbar, alert eyes watching every exit',back:'leather jerkin and thief\'s sack over one shoulder'},
+  Witch:{front:'wearing rough dark clothing with a worn cloak, carrying candles and chalk, a cloth doll visible in a belt pouch, an unsettling presence',back:'dark cloak concealing paraphernalia, pins and chalk visible'},
+  // Warriors
+  Cavalryman:{front:'wearing a leather jack with riding equipment, carrying a weapon, the easy confident stance of an experienced mounted fighter',back:'leather jack and riding gear with weapon scabbard'},
+  Guard:{front:'wearing a leather jerkin over a uniform, carrying a buckler and hand weapon with a storm lantern hanging from belt',back:'guard\'s uniform with equipment and lantern'},
+  Knight:{front:'wearing a mail shirt over a leather jack with a heraldic surcoat, carrying a cavalry weapon and shield, the bearing of trained chivalry',back:'mail armor with heraldic devices and back shield straps'},
+  'Pit Fighter':{front:'wearing a leather jack with bandages wrapped around hands and forearms, carrying knuckledusters, bearing the accumulated scars of the fighting pits',back:'scarred leather jack and fighter\'s hand wraps visible'},
+  Protagonist:{front:'wearing a leather jack and a hood or mask, carrying knuckledusters, an air of aggressive boastfulness',back:'leather jack with concealing hood pulled up'},
+  Slayer:{front:'bare-chested despite the cold, with a dramatic wild orange-dyed mohawk, entirely covered in bold battle tattoos and the scars of countless fights, dual-wielding axes with a death-seeking expression',back:'tattooed and scarred muscular back, axes through belt loops'},
+  Soldier:{front:'wearing a leather breastplate over a military uniform with appropriate insignia, carrying a weapon in regulation stance, disciplined military bearing',back:'military uniform and regulation equipment'},
+  'Warrior Priest':{front:'wearing a leather jerkin under religious robes embroidered with divine symbols, carrying a melee weapon and a prominent holy symbol, fierce devout expression',back:'robes with holy symbol on back, weapon at hip'},
+};
+
+const SP_DESC = {
+  Human:{M:'a weathered male Human adventurer',F:'a weathered female Human adventurer',adj:'of medium build with'},
+  Dwarf:{M:'a stocky male Dwarf with a long elaborately braided beard',F:'a stocky female Dwarf',adj:'short and powerfully built with'},
+  Halfling:{M:'a small curly-haired male Halfling with large bare feet',F:'a small curly-haired female Halfling with large bare feet',adj:'slight, small, and quick-looking with'},
+  'High Elf':{M:'a tall, graceful male High Elf with refined aristocratic features',F:'a tall, graceful female High Elf with refined aristocratic features',adj:'tall and impossibly lithe with'},
+  'Wood Elf':{M:'a lean, alert male Wood Elf with sharp watchful eyes',F:'a lean, alert female Wood Elf with sharp watchful eyes',adj:'wiry and quick with'},
+};
+
+const STATUS_QUALITY = {Brass:'worn and patched, showing hard use',Silver:'practical and well-maintained, quality without excess',Gold:'fine and carefully maintained, richly crafted'};
+
+function generateImagePrompt(){
+  const sp = char.species||'Human';
+  const career = char.career||'Soldier';
+  const gender = char.details.gender||'Male';
+  const hair = char.details.hair;
+  const eyes = char.details.eyes;
+  const marks = char.details.marks;
+  const status = CAREERS.find(c=>c.name===career)?.levels[0]?.status||'Brass 2';
+  const tier = status.split(' ')[0];
+
+  const spD = SP_DESC[sp]||SP_DESC.Human;
+  const charDesc = spD[gender==='Female'?'F':'M'];
+  const adj = spD.adj;
+  const look = CAREER_LOOK[career]||{front:'wearing practical adventuring gear, carrying appropriate weapons and tools',back:'traveling pack and equipment visible'};
+  const quality = STATUS_QUALITY[tier]||STATUS_QUALITY.Brass;
+
+  let appearance = adj;
+  if(hair) appearance += ` ${hair.toLowerCase()} hair`;
+  if(eyes) appearance += ` and ${eyes.toLowerCase()} eyes`;
+  if(marks) appearance += `, ${marks.toLowerCase()}`;
+
+  const prompt =
+`An illustration of ${charDesc}, ${appearance}, on a plain white background, rendered in the gritty, detailed digital painting style characteristic of a Warhammer Fantasy Roleplay guidebook.
+
+The image displays two full-body figures side-by-side: on the left, a front view of the ${sp} — ${look.front}, their equipment ${quality}; on the right, a matching back view of the same figure, showing ${look.back}.
+
+The overall aesthetic is dark, gritty, and richly textured with meticulous attention to materials — worn leather, dull metal, rough cloth — in the manner of classic WFRP art. No background, no other characters, plain white behind them.`;
+
+  return prompt;
+}
+
+function showImagePrompt(){
+  const prompt = generateImagePrompt();
+  document.getElementById('img-prompt-text').textContent = prompt;
+  document.getElementById('img-modal-overlay').classList.add('show');
+  document.getElementById('copy-feedback').classList.remove('show');
+}
+
+function closeImagePrompt(e){
+  if(!e||e.target===document.getElementById('img-modal-overlay'))
+    document.getElementById('img-modal-overlay').classList.remove('show');
+}
+
+function copyImagePrompt(){
+  const text = document.getElementById('img-prompt-text').textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const fb = document.getElementById('copy-feedback');
+    fb.classList.add('show');
+    setTimeout(()=>fb.classList.remove('show'),2500);
+  }).catch(()=>{
+    document.getElementById('img-prompt-text').select?.();
+    document.execCommand?.('copy');
+    showNotif('Prompt copied!');
+  });
+}
+
+function exportJSON(){
+  const data=JSON.stringify({character:{name:char.details.name,species:char.species,career:char.career,class:char.careerClass,status:CAREERS.find(c=>c.name===char.career)?.levels[0]?.status,attributes:char.attrs,wounds:char.wounds,fate:char.fate,fortune:char.fortune,resilience:char.resilience,resolve:char.resolve,movement:char.move,speciesSkills:{plus5:char.speciesSkills5,plus3:char.speciesSkills3},careerSkills:char.careerSkills,talents:{auto:char.autoTalents,choices:char.chosenTalents,random:char.randomTalents,career:char.careerTalent},trappings:{class:char.classTrappings,career:char.careerTrappings,personal:char.personalItems},wealth:char.wealth,details:char.details,backstory:char.backstory,xpBonus:char.xp}},null,2);
+  const a=document.createElement('a');a.href='data:application/json,'+encodeURIComponent(data);
+  a.download=(char.details.name||'wfrp-character')+'.json';a.click();
+}
+</script>
+</body>
+</html>
