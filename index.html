@@ -219,6 +219,21 @@ body{background:var(--bg);color:var(--txtlt);font-family:var(--ff-body);font-siz
 .field-select:focus{outline:none;border-color:var(--golddark)}
 .field-textarea{width:100%;background:rgba(255,255,255,0.5);border:1px solid var(--parch3);border-radius:3px;padding:10px;font-family:var(--ff-body);font-size:0.88rem;color:var(--txt);resize:vertical;line-height:1.6;min-height:80px}
 .field-textarea:focus{outline:none;border-color:var(--golddark);background:rgba(255,255,255,0.7)}
+.ai-bar{background:linear-gradient(160deg,rgba(42,30,12,0.6),rgba(26,18,8,0.8));border:1px solid var(--border);border-radius:4px;padding:14px 18px;margin-bottom:18px;display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.ai-bar label{font-family:var(--ff-head);font-size:0.72rem;color:var(--goldhi);letter-spacing:0.08em}
+.ai-bar input{flex:1;min-width:200px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:3px;padding:6px 10px;font-family:var(--ff-body);font-size:0.82rem;color:var(--goldhi);letter-spacing:0.03em}
+.ai-bar input:focus{outline:none;border-color:var(--gold)}
+.ai-bar .ai-status{font-family:var(--ff-body);font-size:0.72rem;color:var(--txtmd);flex-basis:100%}
+.suggest-btn{display:inline-flex;align-items:center;gap:4px;background:none;border:1px solid rgba(122,88,144,0.4);border-radius:3px;padding:2px 8px;font-family:var(--ff-head);font-size:0.62rem;color:#c8a0e0;cursor:pointer;letter-spacing:0.05em;transition:all 0.2s;vertical-align:middle;margin-left:6px}
+.suggest-btn:hover{border-color:#c8a0e0;background:rgba(122,88,144,0.15)}
+.suggest-btn.loading{opacity:0.6;pointer-events:none}
+.suggest-btn.loading::after{content:'...';animation:dots 1s steps(3,end) infinite}
+@keyframes dots{0%{content:'.'}33%{content:'..'}66%{content:'...'}}
+.suggestions-pop{background:linear-gradient(160deg,#2a1e0c,#1a1208);border:1px solid var(--gold);border-radius:4px;padding:8px;margin-top:6px;display:none}
+.suggestions-pop.show{display:block}
+.suggestion-opt{display:block;width:100%;text-align:left;background:none;border:1px solid var(--border);border-radius:3px;padding:8px 10px;margin-bottom:4px;font-family:var(--ff-body);font-size:0.82rem;color:var(--txtmd);cursor:pointer;transition:all 0.2s;line-height:1.5}
+.suggestion-opt:last-child{margin-bottom:0}
+.suggestion-opt:hover{border-color:var(--gold);color:var(--goldhi);background:rgba(200,150,62,0.08)}
 .personality-grid{display:flex;flex-wrap:wrap;gap:7px}
 .pers-chip{display:flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid var(--parch3);border-radius:20px;cursor:pointer;transition:all 0.2s;font-family:var(--ff-body);font-size:0.8rem;color:var(--txt)}
 .pers-chip:hover{border-color:var(--golddark)}
@@ -621,40 +636,52 @@ body{background:var(--bg);color:var(--txtlt);font-family:var(--ff-body);font-siz
     <div class="title-main">Your Story</div>
     <div class="section-sub">Every soul has a history — what is yours?</div>
     <div style="max-width:760px;width:100%;margin:0 auto">
+      <div class="ai-bar" id="ai-bar">
+        <label>✨ AI Suggestions</label>
+        <input type="password" id="ai-key-input" placeholder="Paste your Anthropic API key (sk-ant-...)" value="">
+        <button class="btn btn-sm" onclick="saveApiKey()">Save</button>
+        <div class="ai-status" id="ai-status">Enter your key to enable AI-powered suggestions based on your character. Uses Claude Haiku · key stored locally only.</div>
+      </div>
       <div class="panel"><div class="panel-inner">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
           <div class="field-group">
-            <label>Short-Term Ambition</label>
+            <label>Short-Term Ambition <button class="suggest-btn" onclick="suggestField('short-ambition','shortAmbition','short-term ambition achievable in the coming weeks')">✨ Suggest</button></label>
             <span class="prompt-question">What do you hope to achieve in the coming weeks?</span>
             <textarea class="field-textarea" id="short-ambition" placeholder="Find the man who killed my father. Earn enough to buy a horse. Discover what lurks beneath the old mill..." oninput="char.backstory.shortAmbition=this.value"></textarea>
+            <div class="suggestions-pop" id="sug-short-ambition"></div>
             <span style="font-family:var(--ff-head);font-size:0.65rem;color:var(--golddark);margin-top:3px">Completing this grants +50 XP</span>
           </div>
           <div class="field-group">
-            <label>Long-Term Ambition</label>
+            <label>Long-Term Ambition <button class="suggest-btn" onclick="suggestField('long-ambition','longAmbition','long-term ambition spanning years of hardship')">✨ Suggest</button></label>
             <span class="prompt-question">What drives you across years of hardship?</span>
             <textarea class="field-textarea" id="long-ambition" placeholder="Become the greatest swordsman in the Reikland. Restore my family's honour. Find the cure before the curse takes hold..." oninput="char.backstory.longAmbition=this.value"></textarea>
+            <div class="suggestions-pop" id="sug-long-ambition"></div>
             <span style="font-family:var(--ff-head);font-size:0.65rem;color:var(--golddark);margin-top:3px">Completing this grants +500 XP or retirement</span>
           </div>
         </div>
         <div class="divider"><span>✦</span></div>
         <div class="field-group" style="margin-bottom:16px">
-          <label>Motivation</label>
+          <label>Motivation <button class="suggest-btn" onclick="suggestField('motivation','motivation','core motivation — what truly drives them beneath surface ambitions')">✨ Suggest</button></label>
           <span class="prompt-question">What truly drives you — beneath the surface ambitions?</span>
           <textarea class="field-textarea" id="motivation" placeholder="Survival, revenge, love, duty, curiosity, redemption..." oninput="char.backstory.motivation=this.value"></textarea>
+          <div class="suggestions-pop" id="sug-motivation"></div>
         </div>
         <div class="field-group" style="margin-bottom:16px">
-          <label>Background</label>
+          <label>Background <button class="suggest-btn" onclick="suggestField('bg-story','story','background story — where they come from and what brought them to this life, 2-3 sentences')">✨ Suggest</button></label>
           <span class="prompt-question">Where do you come from, and what brought you to this life?</span>
           <textarea class="field-textarea" style="min-height:120px" id="bg-story" placeholder="Raised in the shadow of the Grey Mountains... apprenticed to a disgraced wizard who vanished one winter's night... the village burned, and only I walked away..." oninput="char.backstory.story=this.value"></textarea>
+          <div class="suggestions-pop" id="sug-bg-story"></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <div class="field-group">
-            <label>Greatest Fear</label>
+            <label>Greatest Fear <button class="suggest-btn" onclick="suggestField('fear','fear','greatest fear — what keeps them awake at night')">✨ Suggest</button></label>
             <textarea class="field-textarea" style="min-height:60px" id="fear" placeholder="What keeps you awake at night?" oninput="char.backstory.fear=this.value"></textarea>
+            <div class="suggestions-pop" id="sug-fear"></div>
           </div>
           <div class="field-group">
-            <label>What You'd Sacrifice Everything For</label>
+            <label>What You'd Sacrifice Everything For <button class="suggest-btn" onclick="suggestField('sacrifice','sacrifice','the one thing they would sacrifice everything for')">✨ Suggest</button></label>
             <textarea class="field-textarea" style="min-height:60px" id="sacrifice" placeholder="What matters above all else?" oninput="char.backstory.sacrifice=this.value"></textarea>
+            <div class="suggestions-pop" id="sug-sacrifice"></div>
           </div>
         </div>
       </div></div>
@@ -1903,6 +1930,110 @@ function copyImagePrompt(){
     showNotif('Prompt copied!');
   });
 }
+
+// ===================== AI SUGGESTIONS =====================
+function loadApiKey(){
+  const k=localStorage.getItem('anthropic_api_key')||'';
+  const inp=document.getElementById('ai-key-input');
+  if(inp&&k){inp.value=k;document.getElementById('ai-status').textContent='✓ Key saved. Click ✨ Suggest on any field below.';}
+  return k;
+}
+function saveApiKey(){
+  const k=document.getElementById('ai-key-input').value.trim();
+  if(!k){document.getElementById('ai-status').textContent='Please enter a valid API key.';return;}
+  localStorage.setItem('anthropic_api_key',k);
+  document.getElementById('ai-status').textContent='✓ Key saved. Click ✨ Suggest on any field below.';
+  showNotif('API key saved');
+}
+function getCharContext(){
+  const sp=char.species||'Human';
+  const career=char.career||'Unknown';
+  const c=CAREERS.find(x=>x.name===career);
+  const lvl=c?.levels?.[0];
+  const a=char.attrs||{};
+  const NAMES={WS:'Weapon Skill',BS:'Ballistic Skill',S:'Strength',T:'Toughness',I:'Initiative',Ag:'Agility',Dex:'Dexterity',Int:'Intelligence',WP:'Willpower',Fel:'Fellowship'};
+  const attrStr=Object.entries(NAMES).map(([k,n])=>`${n}: ${a[k]||'?'}`).join(', ');
+  const allTalents=[...(char.autoTalents||[]),...(char.chosenTalents||[]),...(char.randomTalents||[]),...(char.careerTalent?[char.careerTalent]:[])];
+  const allSkills=[...(char.speciesSkills5||[]),...(char.speciesSkills3||[]),...Object.keys(char.careerSkills||{})];
+  const pers=char.backstory?.personality||[];
+  const marks=char.details?.marks||'';
+  const name=char.details?.name||'unnamed';
+  const gender=char.details?.gender||'';
+  let ctx=`WFRP 4th Edition Character:\n`;
+  ctx+=`Name: ${name}${gender?' ('+gender+')':''}\n`;
+  ctx+=`Species: ${sp}\nCareer: ${career}${lvl?' — '+lvl.title+' ('+lvl.status+')':''}\n`;
+  ctx+=`Attributes: ${attrStr}\n`;
+  if(allSkills.length)ctx+=`Skills: ${[...new Set(allSkills)].join(', ')}\n`;
+  if(allTalents.length)ctx+=`Talents: ${allTalents.join(', ')}\n`;
+  if(pers.length)ctx+=`Personality: ${pers.join(', ')}\n`;
+  if(marks)ctx+=`Distinguishing marks: ${marks}\n`;
+  if(char.backstory?.doom)ctx+=`Doom prophecy: "${char.backstory.doom}"\n`;
+  return ctx;
+}
+async function callClaude(prompt){
+  const key=localStorage.getItem('anthropic_api_key');
+  if(!key)throw new Error('No API key');
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':key,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({
+      model:'claude-haiku-4-5-20251001',
+      max_tokens:400,
+      messages:[{role:'user',content:prompt}]
+    })
+  });
+  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||'API error '+res.status);}
+  const data=await res.json();
+  return data.content[0].text;
+}
+async function suggestField(fieldId, storeKey, fieldDesc){
+  const key=localStorage.getItem('anthropic_api_key');
+  if(!key){showNotif('Enter your Anthropic API key first');document.getElementById('ai-key-input')?.focus();return;}
+  const triggerBtn=event.target.closest('.suggest-btn');
+  if(triggerBtn){triggerBtn.classList.add('loading');triggerBtn.textContent='✨ Thinking';}
+  const pop=document.getElementById('sug-'+fieldId);
+  if(pop){pop.classList.remove('show');pop.innerHTML='';}
+  try{
+    const ctx=getCharContext();
+    const isBackground=fieldDesc.includes('background story');
+    const prompt=`${ctx}\nYou are a Warhammer Fantasy Roleplay creative writing assistant. Based on the character above, suggest exactly 3 different options for their ${fieldDesc}.\n\n${isBackground?'Each should be 2-3 evocative sentences.':'Each should be 1-2 sentences.'} Ground suggestions in the character\'s species, career, attributes, talents, and personality. Use the gritty, perilous tone of the Old World. Be specific — reference real WFRP locations (Altdorf, Nuln, Middenheim, etc), factions, and lore where appropriate.\n\nReturn ONLY a JSON array of 3 strings. No preamble, no markdown, just the array.`;
+    const raw=await callClaude(prompt);
+    const match=raw.match(/\[[\s\S]*\]/);
+    if(!match)throw new Error('Unexpected response format');
+    const suggestions=JSON.parse(match[0]);
+    if(pop){
+      pop.innerHTML='';
+      suggestions.forEach(s=>{
+        const btn=document.createElement('button');btn.className='suggestion-opt';btn.textContent=s;
+        btn.onclick=()=>{
+          const el=document.getElementById(fieldId);
+          if(el){el.value=s;el.dispatchEvent(new Event('input'));}
+          if(storeKey==='story')char.backstory.story=s;
+          else if(storeKey==='shortAmbition')char.backstory.shortAmbition=s;
+          else if(storeKey==='longAmbition')char.backstory.longAmbition=s;
+          else if(char.backstory.hasOwnProperty(storeKey))char.backstory[storeKey]=s;
+          pop.classList.remove('show');
+          showNotif('Suggestion applied — feel free to edit it');
+        };
+        pop.appendChild(btn);
+      });
+      pop.classList.add('show');
+    }
+  }catch(e){
+    showNotif('AI error: '+e.message,3000);
+    if(pop)pop.innerHTML='<div style="font-size:0.78rem;color:#c06060;padding:6px">'+e.message+'</div>';
+    if(pop)pop.classList.add('show');
+  }finally{
+    if(triggerBtn){triggerBtn.classList.remove('loading');triggerBtn.textContent='✨ Suggest';}
+  }
+}
+// Load saved API key on page load
+document.addEventListener('DOMContentLoaded',()=>{loadApiKey();});
 
 function exportJSON(){
   const data=JSON.stringify({character:{name:char.details.name,species:char.species,career:char.career,class:char.careerClass,status:CAREERS.find(c=>c.name===char.career)?.levels[0]?.status,attributes:char.attrs,wounds:char.wounds,fate:char.fate,fortune:char.fortune,resilience:char.resilience,resolve:char.resolve,movement:char.move,speciesSkills:{plus5:char.speciesSkills5,plus3:char.speciesSkills3},careerSkills:char.careerSkills,talents:{auto:char.autoTalents,choices:char.chosenTalents,random:char.randomTalents,career:char.careerTalent},trappings:{class:char.classTrappings,career:char.careerTrappings,personal:char.personalItems},wealth:char.wealth,details:char.details,backstory:char.backstory,xpBonus:char.xp}},null,2);
